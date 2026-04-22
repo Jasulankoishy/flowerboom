@@ -6,10 +6,13 @@
   "scripts": {
     "dev": "vite --port=5173 --host=0.0.0.0",
     "server": "node server/index.js",
+    "server:prod": "NODE_ENV=production node server/index.js",
     "build": "vite build",
+    "build:server": "cd server && npx prisma generate && npx prisma migrate deploy",
     "preview": "vite preview",
     "clean": "rm -rf dist",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "postinstall": "cd server && npx prisma generate"
   },
   "dependencies": {
     "@google/genai": "^1.29.0",
