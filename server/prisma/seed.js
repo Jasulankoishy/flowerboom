@@ -44,11 +44,16 @@ async function seed() {
     ];
 
     for (const product of products) {
-      await prisma.product.upsert({
-        where: { index: product.index },
-        update: {},
-        create: product
+      // Check if product with this index already exists
+      const existing = await prisma.product.findFirst({
+        where: { index: product.index }
       });
+
+      if (!existing) {
+        await prisma.product.create({
+          data: product
+        });
+      }
     }
     console.log(`✅ Created ${products.length} products`);
 
