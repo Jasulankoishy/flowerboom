@@ -1,0 +1,26 @@
+[
+  {
+    "id": "1",
+    "index": "01",
+    "title": "hydrangea flowers",
+    "image": "http://localhost:3003/uploads/1776624077758-572580519.jpg",
+    "price": "4500",
+    "description": "Элегантный букет в винтажном стиле"
+  },
+  {
+    "id": "2",
+    "index": "02",
+    "title": "Amber Peony",
+    "image": "https://images.unsplash.com/photo-1591880482226-259779357021?q=80&w=800&auto=format&fit=crop",
+    "price": "5200",
+    "description": "Роскошные пионы янтарного оттенка"
+  },
+  {
+    "id": "3",
+    "index": "03",
+    "title": "Golden Hour",
+    "image": "https://images.unsplash.com/photo-1522673607200-164848371868?q=80&w=800&auto=format&fit=crop",
+    "price": "3800",
+    "description": "Букет золотого заката"
+  }
+]

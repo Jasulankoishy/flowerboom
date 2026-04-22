@@ -1,0 +1,105 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  orders    Order[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Admin {
+  id        String   @id @default(uuid())
+  username  String   @unique
+  password  String   // bcrypt hash
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Product {
+  id          String      @id @default(uuid())
+  index       String
+  title       String
+  image       String
+  price       String      // Храним как строку для совместимости с фронтом
+  description String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  reviews     Review[]
+  orderItems  OrderItem[]
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  rating    Int      // 1-5
+  comment   String
+  userName  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Order {
+  id           String      @id @default(uuid())
+  userId       String
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items        OrderItem[]
+
+  // Адрес доставки
+  city         String
+  street       String
+  house        String
+  apartment    String?
+
+  // Контакты
+  phone        String
+
+  // Дата и время доставки
+  deliveryDate String      // Храним как строку для простоты (YYYY-MM-DD)
+  deliveryTime String      // Например: "9:00-12:00"
+
+  // Статус и цена
+  status       String      @default("pending") // pending, confirmed, delivered, cancelled
+  totalPrice   String      // Храним как строку для совместимости
+
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@index([userId])
+  @@index([status])
+}
+
+model OrderItem {
+  id        String   @id @default(uuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  quantity  Int
+  price     String   // Цена на момент заказа
+  createdAt DateTime @default(now())
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+model VerificationCode {
+  id        String   @id @default(uuid())
+  email     String
+  code      String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([email])
+}

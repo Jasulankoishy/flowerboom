@@ -1,0 +1,21 @@
+node_modules/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+stats.html
+.env
+.env.local
+.env.production
+.env*
+!.env.example
+
+# Database
+server/prisma/dev.db
+server/prisma/*.db
+server/prisma/dev.db-journal
+
+# Uploads
+server/uploads/*
+!server/uploads/.gitkeep

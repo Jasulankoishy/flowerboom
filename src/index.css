@@ -1,0 +1,32 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Great+Vibes&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-script: "Great Vibes", cursive;
+
+  --color-ink: #080808;
+  --color-sky: #d4af37; /* Metallic Gold */
+  --color-slate-700: #1a1a1a;
+  --color-slate-800: #121212;
+  --color-white-alt: #f1f1f1;
+}
+
+@layer base {
+  body {
+    @apply bg-ink text-white-alt font-sans antialiased;
+  }
+}
+
+.massive-heading {
+  @apply text-[clamp(60px,12vw,140px)] font-extrabold tracking-tighter leading-[0.85] uppercase;
+}
+
+.rail-text {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+}
+
+.arched-card-styled {
+  @apply bg-slate-800 border border-slate-700 p-2 rounded-lg;
+}

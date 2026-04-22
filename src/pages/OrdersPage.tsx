@@ -1,0 +1,255 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion } from "motion/react";
+import { useAuthStore } from "../stores";
+import { ordersApi, type Order } from "../api/orders";
+import { Package, MapPin, Phone, Calendar, Clock } from "lucide-react";
+
+const STATUS_LABELS: Record<string, string> = {
+  pending: "Ожидает",
+  confirmed: "Подтверждён",
+  delivered: "Доставлен",
+  cancelled: "Отменён",
+};
+
+const STATUS_COLORS: Record<string, string> = {
+  pending: "bg-yellow-500/20 text-yellow-400 border-yellow-500/50",
+  confirmed: "bg-blue-500/20 text-blue-400 border-blue-500/50",
+  delivered: "bg-green-500/20 text-green-400 border-green-500/50",
+  cancelled: "bg-red-500/20 text-red-400 border-red-500/50",
+};
+
+export default function OrdersPage() {
+  const navigate = useNavigate();
+  const { isAuthenticated, userToken } = useAuthStore();
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate("/auth");
+      return;
+    }
+
+    loadOrders();
+  }, [isAuthenticated, navigate]);
+
+  const loadOrders = async () => {
+    try {
+      setLoading(true);
+      const data = await ordersApi.getUserOrders();
+      setOrders(data);
+    } catch (err: any) {
+      setError(err.message || "Ошибка загрузки заказов");
+      console.error("Load orders error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("ru-RU", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    });
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-ink flex items-center justify-center">
+        <div className="text-white-alt text-xl">Загрузка заказов...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-ink flex items-center justify-center p-4">
+        <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-6 max-w-md">
+          <p className="text-red-400 text-center">{error}</p>
+          <button
+            onClick={() => navigate("/")}
+            className="mt-4 w-full px-6 py-3 bg-sky text-ink font-bold rounded hover:brightness-110 transition-all"
+          >
+            На главную
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (orders.length === 0) {
+    return (
+      <div className="min-h-screen bg-ink flex items-center justify-center p-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center"
+        >
+          <Package className="w-24 h-24 text-slate-600 mx-auto mb-6" />
+          <h2 className="text-3xl font-bold text-white-alt mb-4">
+            У вас пока нет заказов
+          </h2>
+          <p className="text-slate-400 mb-8">
+            Оформите первый заказ и он появится здесь
+          </p>
+          <button
+            onClick={() => navigate("/")}
+            className="px-8 py-3 bg-sky text-ink font-bold rounded hover:brightness-110 transition-all"
+          >
+            Перейти в каталог
+          </button>
+        </motion.div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-ink py-12 px-4">
+      <div className="max-w-4xl mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <h1 className="text-4xl font-bold text-white-alt mb-2">Мои заказы</h1>
+          <p className="text-slate-400">
+            Всего заказов: {orders.length}
+          </p>
+        </motion.div>
+
+        <div className="space-y-6">
+          {orders.map((order, index) => (
+            <motion.div
+              key={order.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+              className="bg-slate-800 border-2 border-sky/30 rounded-lg p-6"
+            >
+              {/* Header */}
+              <div className="flex justify-between items-start mb-6">
+                <div>
+                  <p className="text-sm text-slate-400">
+                    Заказ от {formatDate(order.createdAt)}
+                  </p>
+                  <p className="text-xs text-slate-500 font-mono mt-1">
+                    #{order.id.slice(0, 8)}
+                  </p>
+                </div>
+                <div
+                  className={`px-4 py-2 rounded-full border font-bold text-sm ${
+                    STATUS_COLORS[order.status]
+                  }`}
+                >
+                  {STATUS_LABELS[order.status]}
+                </div>
+              </div>
+
+              {/* Items */}
+              <div className="mb-6">
+                <h3 className="text-lg font-bold text-white-alt mb-3 flex items-center gap-2">
+                  <Package className="w-5 h-5 text-sky" />
+                  Товары
+                </h3>
+                <div className="space-y-3">
+                  {order.items.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex gap-4 bg-slate-700/50 rounded-lg p-4"
+                    >
+                      <img
+                        src={item.product.image}
+                        alt={item.product.title}
+                        className="w-16 h-16 object-cover rounded-[50px_50px_12px_12px]"
+                      />
+                      <div className="flex-1">
+                        <h4 className="text-white-alt font-bold">
+                          {item.product.title}
+                        </h4>
+                        <p className="text-slate-400 text-sm">
+                          {item.quantity} шт. × {item.price}₽
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sky font-bold">
+                          {(parseFloat(item.price) * item.quantity).toFixed(2)}₽
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Delivery Info */}
+              <div className="grid md:grid-cols-2 gap-4 mb-6">
+                <div className="bg-slate-700/50 rounded-lg p-4">
+                  <h3 className="text-sm font-bold text-white-alt mb-3 flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-sky" />
+                    Адрес доставки
+                  </h3>
+                  <p className="text-slate-300 text-sm">
+                    {order.city}, {order.street}, д. {order.house}
+                    {order.apartment && `, кв. ${order.apartment}`}
+                  </p>
+                </div>
+
+                <div className="bg-slate-700/50 rounded-lg p-4">
+                  <h3 className="text-sm font-bold text-white-alt mb-3 flex items-center gap-2">
+                    <Phone className="w-4 h-4 text-sky" />
+                    Контакт
+                  </h3>
+                  <p className="text-slate-300 text-sm">{order.phone}</p>
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4 mb-6">
+                <div className="bg-slate-700/50 rounded-lg p-4">
+                  <h3 className="text-sm font-bold text-white-alt mb-3 flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-sky" />
+                    Дата доставки
+                  </h3>
+                  <p className="text-slate-300 text-sm">{order.deliveryDate}</p>
+                </div>
+
+                <div className="bg-slate-700/50 rounded-lg p-4">
+                  <h3 className="text-sm font-bold text-white-alt mb-3 flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-sky" />
+                    Время доставки
+                  </h3>
+                  <p className="text-slate-300 text-sm">{order.deliveryTime}</p>
+                </div>
+              </div>
+
+              {/* Total */}
+              <div className="flex justify-between items-center pt-4 border-t border-slate-700">
+                <span className="text-slate-400 font-bold">Итого:</span>
+                <span className="text-2xl font-bold text-sky">
+                  {order.totalPrice}₽
+                </span>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Back button */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          className="mt-8 text-center"
+        >
+          <button
+            onClick={() => navigate("/")}
+            className="px-8 py-3 bg-slate-700 text-white-alt font-bold rounded hover:bg-slate-600 transition-all"
+          >
+            Вернуться в каталог
+          </button>
+        </motion.div>
+      </div>
+    </div>
+  );
+}
