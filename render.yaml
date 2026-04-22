@@ -5,7 +5,7 @@ services:
     runtime: node
     region: frankfurt
     plan: free
-    buildCommand: npm install && cd server && npx prisma generate && npx prisma migrate deploy
+    buildCommand: npm install && cd server && npx prisma generate && npx prisma migrate deploy && node prisma/seed.js
     startCommand: npm run server:prod
     envVars:
       - key: NODE_ENV
