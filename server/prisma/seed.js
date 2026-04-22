@@ -21,21 +21,21 @@ async function seed() {
     // Create default products with external image URLs
     const products = [
       {
-        index: 1,
+        index: '1',
         title: 'Букет роз "Романтика"',
         price: '2990₽',
         image: 'https://images.unsplash.com/photo-1518895949257-7621c3c786d7?w=800&q=80',
         description: 'Роскошный букет из красных роз — классика романтики'
       },
       {
-        index: 2,
+        index: '2',
         title: 'Букет тюльпанов "Весна"',
         price: '2490₽',
         image: 'https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=800&q=80',
         description: 'Нежные тюльпаны — символ весны и обновления'
       },
       {
-        index: 3,
+        index: '3',
         title: 'Букет пионов "Нежность"',
         price: '3990₽',
         image: 'https://images.unsplash.com/photo-1591886960571-74d43a9d4166?w=800&q=80',
