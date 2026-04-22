@@ -1,11 +1,5 @@
 import prisma from '../prisma/client.js';
 import bcrypt from 'bcrypt';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 async function seed() {
   console.log('🌱 Seeding database...');
@@ -24,61 +18,39 @@ async function seed() {
     });
     console.log('✅ Admin created:', admin.username);
 
-    // Migrate products from JSON
-    const productsFile = path.join(__dirname, '../data/products.json');
-    let productsData = [];
-
-    if (fs.existsSync(productsFile)) {
-      productsData = JSON.parse(fs.readFileSync(productsFile, 'utf8'));
-
-      for (const product of productsData) {
-        // Проверяем существование по index вместо id
-        const existing = await prisma.product.findFirst({
-          where: { index: product.index }
-        });
-
-        if (!existing) {
-          await prisma.product.create({
-            data: {
-              index: product.index,
-              title: product.title,
-              image: product.image,
-              price: product.price,
-              description: product.description
-            }
-          });
-        }
+    // Create default products with external image URLs
+    const products = [
+      {
+        index: 1,
+        title: 'Букет роз "Романтика"',
+        price: '2990₽',
+        image: 'https://images.unsplash.com/photo-1518895949257-7621c3c786d7?w=800&q=80',
+        description: 'Роскошный букет из красных роз — классика романтики'
+      },
+      {
+        index: 2,
+        title: 'Букет тюльпанов "Весна"',
+        price: '2490₽',
+        image: 'https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=800&q=80',
+        description: 'Нежные тюльпаны — символ весны и обновления'
+      },
+      {
+        index: 3,
+        title: 'Букет пионов "Нежность"',
+        price: '3990₽',
+        image: 'https://images.unsplash.com/photo-1591886960571-74d43a9d4166?w=800&q=80',
+        description: 'Пышные пионы — воплощение нежности и красоты'
       }
-      console.log(`✅ Migrated ${productsData.length} products`);
+    ];
+
+    for (const product of products) {
+      await prisma.product.upsert({
+        where: { index: product.index },
+        update: {},
+        create: product
+      });
     }
-
-    // Migrate reviews from JSON (if exists)
-    const reviewsFile = path.join(__dirname, '../data/reviews.json');
-    if (fs.existsSync(reviewsFile)) {
-      const reviewsData = JSON.parse(fs.readFileSync(reviewsFile, 'utf8'));
-
-      for (const review of reviewsData) {
-        // Найти продукт по старому id из JSON
-        const oldProduct = productsData.find(p => p.id === review.productId);
-        if (!oldProduct) continue;
-
-        const product = await prisma.product.findFirst({
-          where: { index: oldProduct.index }
-        });
-
-        if (product) {
-          await prisma.review.create({
-            data: {
-              productId: product.id,
-              rating: review.rating,
-              comment: review.comment,
-              userName: review.userName
-            }
-          });
-        }
-      }
-      console.log(`✅ Migrated ${reviewsData.length} reviews`);
-    }
+    console.log(`✅ Created ${products.length} products`);
 
     console.log('🎉 Seeding completed!');
   } catch (error) {

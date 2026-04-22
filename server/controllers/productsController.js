@@ -1,4 +1,5 @@
 import prisma from '../prisma/client.js';
+import cloudinary from '../config/cloudinary.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -42,8 +43,6 @@ export const getProductById = async (req, res) => {
 // Create product
 export const createProduct = async (req, res) => {
   const { title, price, description, imageUrl } = req.body;
-  const HOST = process.env.HOST || 'localhost';
-  const PORT = process.env.PORT || 3003;
 
   try {
     // Get next index
@@ -54,9 +53,8 @@ export const createProduct = async (req, res) => {
       ? String(parseInt(lastProduct.index) + 1).padStart(2, '0')
       : '01';
 
-    const image = req.file
-      ? `http://${HOST}:${PORT}/uploads/${req.file.filename}`
-      : imageUrl || '';
+    // Use imageUrl from request (Cloudinary URL)
+    const image = imageUrl || '';
 
     const product = await prisma.product.create({
       data: {
@@ -79,8 +77,6 @@ export const createProduct = async (req, res) => {
 export const updateProduct = async (req, res) => {
   const { id } = req.params;
   const { title, price, description, imageUrl } = req.body;
-  const HOST = process.env.HOST || 'localhost';
-  const PORT = process.env.PORT || 3003;
 
   try {
     const product = await prisma.product.findUnique({ where: { id } });
@@ -89,9 +85,8 @@ export const updateProduct = async (req, res) => {
       return res.status(404).json({ message: 'Product not found' });
     }
 
-    const image = req.file
-      ? `http://${HOST}:${PORT}/uploads/${req.file.filename}`
-      : imageUrl || product.image;
+    // Use imageUrl from request (Cloudinary URL)
+    const image = imageUrl || product.image;
 
     const updated = await prisma.product.update({
       where: { id },
@@ -123,17 +118,29 @@ export const deleteProduct = async (req, res) => {
   }
 };
 
-// Upload image
+// Upload image to Cloudinary
 export const uploadImage = async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ message: 'No file uploaded' });
   }
 
-  const HOST = process.env.HOST || 'localhost';
-  const PORT = process.env.PORT || 3003;
+  try {
+    // Upload to Cloudinary
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      folder: 'flowerboom',
+      resource_type: 'image',
+      transformation: [
+        { width: 800, height: 800, crop: 'limit' },
+        { quality: 'auto', fetch_format: 'auto' }
+      ]
+    });
 
-  res.json({
-    url: `http://${HOST}:${PORT}/uploads/${req.file.filename}`,
-    filename: req.file.filename
-  });
+    res.json({
+      url: result.secure_url,
+      public_id: result.public_id
+    });
+  } catch (error) {
+    console.error('Upload error:', error);
+    res.status(500).json({ message: 'Failed to upload image' });
+  }
 };
