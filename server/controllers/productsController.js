@@ -125,20 +125,33 @@ export const uploadImage = async (req, res) => {
   }
 
   try {
-    // Upload to Cloudinary
-    const result = await cloudinary.uploader.upload(req.file.path, {
-      folder: 'flowerboom',
-      resource_type: 'image',
-      transformation: [
-        { width: 800, height: 800, crop: 'limit' },
-        { quality: 'auto', fetch_format: 'auto' }
-      ]
-    });
+    // Upload buffer to Cloudinary
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder: 'flowerboom',
+        resource_type: 'image',
+        transformation: [
+          { width: 800, height: 800, crop: 'limit' },
+          { quality: 'auto', fetch_format: 'auto' }
+        ]
+      },
+      (error, result) => {
+        if (error) {
+          console.error('Cloudinary upload error:', error);
+          return res.status(500).json({ message: 'Failed to upload image' });
+        }
 
-    res.json({
-      url: result.secure_url,
-      public_id: result.public_id
-    });
+        res.json({
+          url: result.secure_url,
+          public_id: result.public_id
+        });
+      }
+    );
+
+    // Pipe the buffer to Cloudinary
+    const { Readable } = await import('stream');
+    const bufferStream = Readable.from(req.file.buffer);
+    bufferStream.pipe(uploadStream);
   } catch (error) {
     console.error('Upload error:', error);
     res.status(500).json({ message: 'Failed to upload image' });
