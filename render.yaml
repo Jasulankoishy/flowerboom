@@ -16,10 +16,8 @@ services:
         value: 0.0.0.0
       - key: JWT_SECRET
         generateValue: true
-        sync: false
       - key: JWT_REFRESH_SECRET
         generateValue: true
-        sync: false
       - key: ADMIN_USERNAME
         value: admin
       - key: ADMIN_PASSWORD
@@ -36,7 +34,6 @@ services:
   - type: web
     name: flowerboom-web
     runtime: static
-    region: frankfurt
     plan: free
     buildCommand: npm install && npm run build
     staticPublishPath: ./dist
