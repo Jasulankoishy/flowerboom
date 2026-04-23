@@ -7,11 +7,13 @@ import Footer from "../components/Footer";
 import SearchModal from "../components/SearchModal";
 import CartModal from "../components/CartModal";
 import QuickOrderModal from "../components/QuickOrderModal";
+import { useThemeStore } from "../stores";
 import type { Product } from "../types";
 
 
 export default function HomePage() {
   const navigate = useNavigate();
+  const { isDark } = useThemeStore();
   const [showSearch, setShowSearch] = useState(false);
   const [showCart, setShowCart] = useState(false);
   const [quickOrderProduct, setQuickOrderProduct] = useState<Product | null>(null);
@@ -23,7 +25,7 @@ export default function HomePage() {
   const handleShowReviews = () => setShowSearch(true);
 
   return (
-    <div className="min-h-screen bg-ink flex flex-col">
+    <div className={`min-h-screen flex flex-col transition-colors duration-500 ${isDark ? 'bg-gray-900' : 'bg-ink'}`}>
       <Header
         onSearchClick={handleSearchClick}
         onCartClick={handleCartClick}

@@ -1,4 +1,5 @@
 import { motion } from "motion/react";
+import { useThemeStore } from "../stores";
 import type { Product } from "../types";
 
 interface ProductCardProps {
@@ -9,6 +10,8 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product, delay, onQuickOrder, onShowReviews }: ProductCardProps) {
+  const { isDark } = useThemeStore();
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 50, scale: 0.95 }}
@@ -23,7 +26,11 @@ export default function ProductCard({ product, delay, onQuickOrder, onShowReview
         y: -8,
         transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] }
       }}
-      className="card flex flex-col items-center bg-slate-800 border-2 border-slate-700/50 p-6 rounded-lg group hover:border-sky/30 transition-all duration-500"
+      className={`card flex flex-col items-center p-6 rounded-lg group transition-all duration-500 ${
+        isDark
+          ? 'bg-gray-800 border-2 border-gray-700/50 hover:border-pink-500/30'
+          : 'bg-slate-800 border-2 border-slate-700/50 hover:border-sky/30'
+      }`}
     >
       <div className="w-full flex justify-between items-start mb-4">
         <div className="text-sm font-bold tracking-[0.4em] text-slate-600 uppercase">Series {product.index}</div>

@@ -1,7 +1,10 @@
 import { motion } from "motion/react";
 import { Plus } from "lucide-react";
+import { useThemeStore } from "../stores";
 
 export default function HeroSection() {
+  const { isDark } = useThemeStore();
+
   return (
     <div className="flex flex-col lg:flex-row gap-16 mb-24 items-end justify-between">
       <div className="max-w-xl">
@@ -9,7 +12,7 @@ export default function HeroSection() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1, delay: 0.3 }}
-          className="text-2xl font-script text-sky/80 italic mb-4"
+          className={`text-2xl font-script italic mb-4 ${isDark ? 'text-pink-400/80' : 'text-sky/80'}`}
         >
           Создаем любовь через цветы
         </motion.p>
@@ -17,7 +20,7 @@ export default function HeroSection() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1, delay: 0.4 }}
-          className="text-slate-400 text-lg leading-relaxed font-sans"
+          className={`text-lg leading-relaxed font-sans ${isDark ? 'text-gray-300' : 'text-slate-400'}`}
         >
           Мы выращиваем наши цветы с любовью специально для вас.
           Трепетно относимся к доставке, чтобы доставить вам эстетическое удовольствие.
