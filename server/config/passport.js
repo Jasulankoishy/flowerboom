@@ -53,17 +53,18 @@ passport.use(
   )
 );
 
-// Google OAuth Strategy
-passport.use(
-  new GoogleStrategy(
-    {
-      clientID: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL:
-        process.env.NODE_ENV === 'production'
-          ? `${process.env.BACKEND_URL}/api/auth/google/callback`
-          : 'http://localhost:3003/api/auth/google/callback',
-    },
+// Google OAuth Strategy (only if credentials are provided)
+if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+  passport.use(
+    new GoogleStrategy(
+      {
+        clientID: process.env.GOOGLE_CLIENT_ID,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        callbackURL:
+          process.env.NODE_ENV === 'production'
+            ? `${process.env.BACKEND_URL}/api/auth/google/callback`
+            : 'http://localhost:3003/api/auth/google/callback',
+      },
     async (accessToken, refreshToken, profile, done) => {
       try {
         const email = profile.emails?.[0]?.value;
@@ -119,6 +120,9 @@ passport.use(
     }
   )
 );
+} else {
+  console.warn('⚠️  Google OAuth disabled: GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET not set');
+}
 
 // Сериализация пользователя (для сессий)
 passport.serializeUser((user, done) => {

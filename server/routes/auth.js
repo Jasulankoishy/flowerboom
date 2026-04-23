@@ -15,31 +15,48 @@ router.post('/login', authLimiter, validateLogin, login);
 router.post('/forgot-password', authLimiter, validateEmail, forgotPassword);
 router.post('/reset-password', authLimiter, validateResetPassword, resetPassword);
 
-// Google OAuth
-router.get('/google', passport.authenticate('google', {
-  scope: ['profile', 'email'],
-  session: false
-}));
+// Google OAuth (only if credentials are configured)
+if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+  router.get('/google', passport.authenticate('google', {
+    scope: ['profile', 'email'],
+    session: false
+  }));
 
-router.get('/google/callback',
-  passport.authenticate('google', {
-    session: false,
-    failureRedirect: process.env.FRONTEND_URL + '/auth?error=google_auth_failed'
-  }),
-  (req, res) => {
-    // Generate JWT tokens
-    const accessToken = generateAccessToken({
-      userId: req.user.id,
-      email: req.user.email,
-      isAdmin: false
+  router.get('/google/callback',
+    passport.authenticate('google', {
+      session: false,
+      failureRedirect: process.env.FRONTEND_URL + '/auth?error=google_auth_failed'
+    }),
+    (req, res) => {
+      // Generate JWT tokens
+      const accessToken = generateAccessToken({
+        userId: req.user.id,
+        email: req.user.email,
+        isAdmin: false
+      });
+      const refreshToken = generateRefreshToken({ userId: req.user.id });
+
+      // Redirect to frontend with tokens
+      const redirectUrl = `${process.env.FRONTEND_URL}/auth/callback?token=${accessToken}&refreshToken=${refreshToken}`;
+      res.redirect(redirectUrl);
+    }
+  );
+} else {
+  // Return error if Google OAuth is not configured
+  router.get('/google', (req, res) => {
+    res.status(503).json({
+      success: false,
+      message: 'Google OAuth is not configured on this server'
     });
-    const refreshToken = generateRefreshToken({ userId: req.user.id });
+  });
 
-    // Redirect to frontend with tokens
-    const redirectUrl = `${process.env.FRONTEND_URL}/auth/callback?token=${accessToken}&refreshToken=${refreshToken}`;
-    res.redirect(redirectUrl);
-  }
-);
+  router.get('/google/callback', (req, res) => {
+    res.status(503).json({
+      success: false,
+      message: 'Google OAuth is not configured on this server'
+    });
+  });
+}
 
 // Admin login (keep existing)
 router.post('/admin/login', adminLoginLimiter, validateAdminLogin, adminLogin);
