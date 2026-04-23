@@ -130,15 +130,15 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-purple-50 flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-pink-100 rounded-full mb-4">
-            <Flower2 className="w-8 h-8 text-pink-600" />
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-pink-600 rounded-full mb-4">
+            <Flower2 className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">Flowerboom</h1>
-          <p className="text-gray-600 mt-2">
+          <h1 className="text-3xl font-bold text-white">Flowerboom</h1>
+          <p className="text-gray-300 mt-2">
             {mode === "login" && "Войдите в свой аккаунт"}
             {mode === "register" && "Создайте новый аккаунт"}
             {mode === "forgot" && "Восстановление пароля"}
@@ -147,15 +147,15 @@ export default function AuthPage() {
         </div>
 
         {/* Form Card */}
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="bg-gray-800 rounded-2xl shadow-2xl p-8 border border-gray-700">
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+            <div className="mb-4 p-3 bg-red-900/50 border border-red-700 rounded-lg text-red-300 text-sm">
               {error}
             </div>
           )}
 
           {success && (
-            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
+            <div className="mb-4 p-3 bg-green-900/50 border border-green-700 rounded-lg text-green-300 text-sm">
               {success}
             </div>
           )}
@@ -164,7 +164,7 @@ export default function AuthPage() {
           {mode === "login" && (
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-300 mb-2">
                   Email
                 </label>
                 <input
@@ -172,13 +172,13 @@ export default function AuthPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                  className="w-full px-4 py-3 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent placeholder-gray-400"
                   placeholder="your@email.com"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-300 mb-2">
                   Пароль
                 </label>
                 <div className="relative">
@@ -187,13 +187,13 @@ export default function AuthPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent pr-12"
+                    className="w-full px-4 py-3 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent pr-12 placeholder-gray-400"
                     placeholder="••••••••"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-200"
                   >
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
@@ -203,7 +203,7 @@ export default function AuthPage() {
               <button
                 type="button"
                 onClick={() => setMode("forgot")}
-                className="text-sm text-pink-600 hover:text-pink-700 font-medium"
+                className="text-sm text-pink-500 hover:text-pink-400 font-medium"
               >
                 Забыли пароль?
               </button>
@@ -218,17 +218,17 @@ export default function AuthPage() {
 
               <div className="relative my-6">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300"></div>
+                  <div className="w-full border-t border-gray-600"></div>
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-4 bg-white text-gray-500">или</span>
+                  <span className="px-4 bg-gray-800 text-gray-400">или</span>
                 </div>
               </div>
 
               <button
                 type="button"
                 onClick={handleGoogleLogin}
-                className="w-full flex items-center justify-center gap-3 bg-white border-2 border-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-50 transition"
+                className="w-full flex items-center justify-center gap-3 bg-gray-700 border-2 border-gray-600 text-white py-3 rounded-lg font-semibold hover:bg-gray-600 transition"
               >
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
                   <path
@@ -251,12 +251,12 @@ export default function AuthPage() {
                 Войти через Google
               </button>
 
-              <p className="text-center text-sm text-gray-600 mt-6">
+              <p className="text-center text-sm text-gray-400 mt-6">
                 Нет аккаунта?{" "}
                 <button
                   type="button"
                   onClick={() => setMode("register")}
-                  className="text-pink-600 hover:text-pink-700 font-semibold"
+                  className="text-pink-500 hover:text-pink-400 font-semibold"
                 >
                   Зарегистрироваться
                 </button>
@@ -305,7 +305,7 @@ export default function AuthPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-300 mb-2">
                   Подтвердите пароль
                 </label>
                 <input
@@ -313,7 +313,7 @@ export default function AuthPage() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                  className="w-full px-4 py-3 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent placeholder-gray-400"
                   placeholder="••••••••"
                 />
               </div>
@@ -328,17 +328,17 @@ export default function AuthPage() {
 
               <div className="relative my-6">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300"></div>
+                  <div className="w-full border-t border-gray-600"></div>
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-4 bg-white text-gray-500">или</span>
+                  <span className="px-4 bg-gray-800 text-gray-400">или</span>
                 </div>
               </div>
 
               <button
                 type="button"
                 onClick={handleGoogleLogin}
-                className="w-full flex items-center justify-center gap-3 bg-white border-2 border-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-50 transition"
+                className="w-full flex items-center justify-center gap-3 bg-gray-700 border-2 border-gray-600 text-white py-3 rounded-lg font-semibold hover:bg-gray-600 transition"
               >
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
                   <path
@@ -361,12 +361,12 @@ export default function AuthPage() {
                 Войти через Google
               </button>
 
-              <p className="text-center text-sm text-gray-600 mt-6">
+              <p className="text-center text-sm text-gray-400 mt-6">
                 Уже есть аккаунт?{" "}
                 <button
                   type="button"
                   onClick={() => setMode("login")}
-                  className="text-pink-600 hover:text-pink-700 font-semibold"
+                  className="text-pink-500 hover:text-pink-400 font-semibold"
                 >
                   Войти
                 </button>
@@ -402,7 +402,7 @@ export default function AuthPage() {
               <button
                 type="button"
                 onClick={() => setMode("login")}
-                className="w-full text-gray-600 hover:text-gray-800 text-sm font-medium"
+                className="w-full text-gray-400 hover:text-gray-200 text-sm font-medium"
               >
                 Вернуться к входу
               </button>
@@ -413,7 +413,7 @@ export default function AuthPage() {
           {mode === "reset" && (
             <form onSubmit={handleResetPassword} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-300 mb-2">
                   Код из письма
                 </label>
                 <input
@@ -422,13 +422,13 @@ export default function AuthPage() {
                   onChange={(e) => setCode(e.target.value)}
                   required
                   maxLength={6}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent text-center text-2xl tracking-widest"
+                  className="w-full px-4 py-3 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent text-center text-2xl tracking-widest placeholder-gray-400"
                   placeholder="000000"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-300 mb-2">
                   Новый пароль
                 </label>
                 <div className="relative">
@@ -437,13 +437,13 @@ export default function AuthPage() {
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent pr-12"
+                    className="w-full px-4 py-3 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent pr-12 placeholder-gray-400"
                     placeholder="Минимум 8 символов, 1 цифра"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-200"
                   >
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
@@ -451,7 +451,7 @@ export default function AuthPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-300 mb-2">
                   Подтвердите пароль
                 </label>
                 <input
@@ -459,7 +459,7 @@ export default function AuthPage() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                  className="w-full px-4 py-3 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent placeholder-gray-400"
                   placeholder="••••••••"
                 />
               </div>
