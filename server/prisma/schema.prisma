@@ -13,6 +13,10 @@ datasource db {
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
+  password  String?  // bcrypt hash, null если зашёл через Google
+  googleId  String?  @unique // null если зашёл через email
+  name      String?  // имя из Google профиля
+  avatar    String?  // фото из Google профиля
   orders    Order[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

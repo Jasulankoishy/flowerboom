@@ -14,9 +14,32 @@ export const validateEmail = [
   validate
 ];
 
-export const validateVerificationCode = [
-  body('email').isEmail().normalizeEmail(),
+export const validateRegister = [
+  body('email').isEmail().normalizeEmail().withMessage('Invalid email address'),
+  body('password')
+    .isString()
+    .isLength({ min: 8 })
+    .withMessage('Пароль должен содержать минимум 8 символов')
+    .matches(/\d/)
+    .withMessage('Пароль должен содержать хотя бы одну цифру'),
+  validate
+];
+
+export const validateLogin = [
+  body('email').isEmail().normalizeEmail().withMessage('Invalid email address'),
+  body('password').isString().notEmpty().withMessage('Password is required'),
+  validate
+];
+
+export const validateResetPassword = [
+  body('email').isEmail().normalizeEmail().withMessage('Invalid email address'),
   body('code').isString().isLength({ min: 6, max: 6 }).withMessage('Code must be 6 digits'),
+  body('newPassword')
+    .isString()
+    .isLength({ min: 8 })
+    .withMessage('Пароль должен содержать минимум 8 символов')
+    .matches(/\d/)
+    .withMessage('Пароль должен содержать хотя бы одну цифру'),
   validate
 ];
 

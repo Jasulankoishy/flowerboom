@@ -4,7 +4,7 @@ import { useAuthStore } from "../stores";
  * Fetch wrapper that automatically adds Authorization header
  */
 export async function apiFetch(url: string, options: RequestInit = {}): Promise<Response> {
-  const token = useAuthStore.getState().userToken;
+  const token = useAuthStore.getState().accessToken;
 
   const headers: HeadersInit = {
     ...options.headers,

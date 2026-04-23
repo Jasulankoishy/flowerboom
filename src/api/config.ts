@@ -2,8 +2,11 @@ export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3003";
 
 export const API_ENDPOINTS = {
   // Auth
-  sendCode: "/api/auth/send-code",
-  verifyCode: "/api/auth/verify-code",
+  register: "/api/auth/register",
+  login: "/api/auth/login",
+  forgotPassword: "/api/auth/forgot-password",
+  resetPassword: "/api/auth/reset-password",
+  googleAuth: "/api/auth/google",
   adminLogin: "/api/auth/admin/login",
 
   // Products

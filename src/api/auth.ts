@@ -1,34 +1,75 @@
 import { API_URL, API_ENDPOINTS } from "./config";
 
+interface AuthResponse {
+  success: boolean;
+  message?: string;
+  accessToken?: string;
+  refreshToken?: string;
+  user?: {
+    id: string;
+    email: string;
+    name?: string;
+    avatar?: string;
+  };
+}
+
 export const authApi = {
-  async sendCode(email: string): Promise<{ success: boolean; message: string; devMode?: boolean }> {
-    const response = await fetch(`${API_URL}${API_ENDPOINTS.sendCode}`, {
+  async register(email: string, password: string): Promise<AuthResponse> {
+    const response = await fetch(`${API_URL}${API_ENDPOINTS.register}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || "Ошибка регистрации");
+    return data;
+  },
+
+  async login(email: string, password: string): Promise<AuthResponse> {
+    const response = await fetch(`${API_URL}${API_ENDPOINTS.login}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || "Ошибка входа");
+    return data;
+  },
+
+  async forgotPassword(email: string): Promise<{ success: boolean; message: string }> {
+    const response = await fetch(`${API_URL}${API_ENDPOINTS.forgotPassword}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email }),
     });
-    if (!response.ok) throw new Error("Failed to send code");
-    return response.json();
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || "Ошибка отправки кода");
+    return data;
   },
 
-  async verifyCode(email: string, code: string): Promise<{ success: boolean; message: string; accessToken: string }> {
-    const response = await fetch(`${API_URL}${API_ENDPOINTS.verifyCode}`, {
+  async resetPassword(email: string, code: string, newPassword: string): Promise<{ success: boolean; message: string }> {
+    const response = await fetch(`${API_URL}${API_ENDPOINTS.resetPassword}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, code }),
+      body: JSON.stringify({ email, code, newPassword }),
     });
-    if (!response.ok) throw new Error("Failed to verify code");
-    return response.json();
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || "Ошибка сброса пароля");
+    return data;
   },
 
-  async adminLogin(username: string, password: string): Promise<{ success: boolean; accessToken?: string; message?: string }> {
+  loginWithGoogle(): void {
+    window.location.href = `${API_URL}${API_ENDPOINTS.googleAuth}`;
+  },
+
+  async adminLogin(username: string, password: string): Promise<AuthResponse> {
     const response = await fetch(`${API_URL}${API_ENDPOINTS.adminLogin}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username, password }),
     });
     const data = await response.json();
-    if (!response.ok) throw new Error(data.message || "Failed to login");
+    if (!response.ok) throw new Error(data.message || "Ошибка входа");
     return data;
   },
 };

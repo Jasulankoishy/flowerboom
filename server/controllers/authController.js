@@ -3,99 +3,218 @@ import bcrypt from 'bcrypt';
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '../utils/jwt.js';
 import { sendVerificationCode } from '../utils/email.js';
 
-// Send verification code
-export const sendCode = async (req, res) => {
-  const { email } = req.body;
+// Register with email + password
+export const register = async (req, res) => {
+  const { email, password } = req.body;
 
   try {
-    // Generate 6-digit code
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    // Check if user already exists
+    const existingUser = await prisma.user.findUnique({ where: { email } });
 
-    // Delete old codes for this email
-    await prisma.verificationCode.deleteMany({
-      where: { email }
-    });
-
-    // Store new code
-    await prisma.verificationCode.create({
-      data: { email, code, expiresAt }
-    });
-
-    // Send email via Resend
-    if (process.env.RESEND_API_KEY) {
-      try {
-        await sendVerificationCode(email, code);
-        return res.json({
-          success: true,
-          message: 'Код отправлен на email'
-        });
-      } catch (emailError) {
-        console.error('Email send error:', emailError);
-        // Fallback to console log if email fails
-        console.log(`\n📧 Verification code for ${email}: ${code}\n`);
-        return res.json({
-          success: true,
-          message: 'Код отправлен (проверьте консоль сервера)',
-          devMode: true
-        });
-      }
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: 'Пользователь с таким email уже существует'
+      });
     }
 
-    // If Resend is not configured, log to console (dev mode)
-    console.log(`\n📧 Verification code for ${email}: ${code}\n`);
-    return res.json({
-      success: true,
-      message: 'Код отправлен (проверьте консоль сервера)',
-      devMode: true
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create user
+    const user = await prisma.user.create({
+      data: {
+        email,
+        password: hashedPassword,
+      },
     });
-  } catch (error) {
-    console.error('Send code error:', error);
-    res.status(500).json({ success: false, message: 'Failed to send code' });
-  }
-};
-
-// Verify code
-export const verifyCode = async (req, res) => {
-  const { email, code } = req.body;
-
-  try {
-    const stored = await prisma.verificationCode.findFirst({
-      where: { email, code }
-    });
-
-    if (!stored) {
-      return res.status(400).json({ success: false, message: 'Code not found or expired' });
-    }
-
-    if (new Date() > stored.expiresAt) {
-      await prisma.verificationCode.delete({ where: { id: stored.id } });
-      return res.status(400).json({ success: false, message: 'Code expired' });
-    }
-
-    // Code is valid, create or get user
-    let user = await prisma.user.findUnique({ where: { email } });
-    if (!user) {
-      user = await prisma.user.create({ data: { email } });
-    }
-
-    // Delete used code
-    await prisma.verificationCode.delete({ where: { id: stored.id } });
 
     // Generate tokens
-    const accessToken = generateAccessToken({ userId: user.id, email: user.email, isAdmin: false });
+    const accessToken = generateAccessToken({
+      userId: user.id,
+      email: user.email,
+      isAdmin: false
+    });
     const refreshToken = generateRefreshToken({ userId: user.id });
 
     res.json({
       success: true,
-      message: 'Verification successful',
+      message: 'Регистрация успешна',
       accessToken,
       refreshToken,
-      user: { id: user.id, email: user.email }
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        avatar: user.avatar
+      },
     });
   } catch (error) {
-    console.error('Verify code error:', error);
-    res.status(500).json({ success: false, message: 'Failed to verify code' });
+    console.error('Register error:', error);
+    res.status(500).json({ success: false, message: 'Ошибка регистрации' });
+  }
+};
+
+// Login with email + password
+export const login = async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    // Find user
+    const user = await prisma.user.findUnique({ where: { email } });
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Неверный email или пароль'
+      });
+    }
+
+    // Check if user registered via Google
+    if (!user.password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Этот аккаунт создан через Google. Войдите через Google.',
+      });
+    }
+
+    // Verify password
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordValid) {
+      return res.status(401).json({
+        success: false,
+        message: 'Неверный email или пароль'
+      });
+    }
+
+    // Generate tokens
+    const accessToken = generateAccessToken({
+      userId: user.id,
+      email: user.email,
+      isAdmin: false
+    });
+    const refreshToken = generateRefreshToken({ userId: user.id });
+
+    res.json({
+      success: true,
+      message: 'Вход выполнен',
+      accessToken,
+      refreshToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        avatar: user.avatar
+      },
+    });
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ success: false, message: 'Ошибка входа' });
+  }
+};
+
+// Forgot password - send reset code
+export const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    // Find user (but don't reveal if user exists for security)
+    const user = await prisma.user.findUnique({ where: { email } });
+
+    if (user) {
+      // Generate 6-digit code
+      const code = Math.floor(100000 + Math.random() * 900000).toString();
+      const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+
+      // Delete old codes for this email
+      await prisma.verificationCode.deleteMany({
+        where: { email },
+      });
+
+      // Store new code
+      await prisma.verificationCode.create({
+        data: { email, code, expiresAt },
+      });
+
+      // Send email
+      if (process.env.RESEND_API_KEY) {
+        try {
+          await sendVerificationCode(email, code);
+        } catch (emailError) {
+          console.error('Email send error:', emailError);
+          console.log(`\n📧 Password reset code for ${email}: ${code}\n`);
+        }
+      } else {
+        console.log(`\n📧 Password reset code for ${email}: ${code}\n`);
+      }
+    }
+
+    // Always return success (security best practice)
+    res.json({
+      success: true,
+      message: 'Если аккаунт существует, код отправлен на email',
+    });
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    res.status(500).json({ success: false, message: 'Ошибка отправки кода' });
+  }
+};
+
+// Reset password with code
+export const resetPassword = async (req, res) => {
+  const { email, code, newPassword } = req.body;
+
+  try {
+    // Find verification code
+    const stored = await prisma.verificationCode.findFirst({
+      where: { email, code },
+    });
+
+    if (!stored) {
+      return res.status(400).json({
+        success: false,
+        message: 'Неверный код или код истёк'
+      });
+    }
+
+    if (new Date() > stored.expiresAt) {
+      await prisma.verificationCode.delete({ where: { id: stored.id } });
+      return res.status(400).json({
+        success: false,
+        message: 'Код истёк'
+      });
+    }
+
+    // Find user
+    const user = await prisma.user.findUnique({ where: { email } });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Пользователь не найден'
+      });
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update password
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { password: hashedPassword },
+    });
+
+    // Delete used code
+    await prisma.verificationCode.delete({ where: { id: stored.id } });
+
+    res.json({
+      success: true,
+      message: 'Пароль успешно обновлён',
+    });
+  } catch (error) {
+    console.error('Reset password error:', error);
+    res.status(500).json({ success: false, message: 'Ошибка сброса пароля' });
   }
 };
 

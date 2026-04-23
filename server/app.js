@@ -1,17 +1,25 @@
+import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Load environment variables FIRST
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.join(__dirname, '..', '.env') });
+
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import xss from 'xss';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import session from 'express-session';
+
+// Import passport AFTER env vars are loaded
+import passport from './config/passport.js';
 import authRoutes from './routes/auth.js';
 import productsRoutes from './routes/products.js';
 import reviewsRoutes from './routes/reviews.js';
 import uploadRoutes from './routes/upload.js';
 import ordersRoutes from './routes/orders.js';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const app = express();
 
@@ -40,6 +48,22 @@ app.use(cors({
 // Body parsing
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Session (required for Passport)
+app.use(session({
+  secret: process.env.JWT_SECRET || 'fallback-secret-key',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  }
+}));
+
+// Initialize Passport
+app.use(passport.initialize());
+app.use(passport.session());
 
 // XSS protection - sanitize all string inputs
 app.use((req, res, next) => {

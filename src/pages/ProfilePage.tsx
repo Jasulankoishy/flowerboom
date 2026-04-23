@@ -9,7 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 
 export default function ProfilePage() {
-  const { userEmail, logout } = useAuthStore();
+  const { user, logout } = useAuthStore();
   const navigate = useNavigate();
   const [showSearch, setShowSearch] = useState(false);
   const [showCart, setShowCart] = useState(false);
@@ -39,10 +39,14 @@ export default function ProfilePage() {
           <div className="bg-slate-800 border-2 border-slate-700/50 rounded-lg p-8">
             <div className="flex items-center gap-4 mb-8">
               <div className="w-20 h-20 bg-sky/20 rounded-full flex items-center justify-center">
-                <User className="w-10 h-10 text-sky" />
+                {user?.avatar ? (
+                  <img src={user.avatar} alt={user.name || "User"} className="w-20 h-20 rounded-full" />
+                ) : (
+                  <User className="w-10 h-10 text-sky" />
+                )}
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-white-alt">Профиль</h1>
+                <h1 className="text-3xl font-bold text-white-alt">{user?.name || "Профиль"}</h1>
                 <p className="text-slate-400">Ваши данные</p>
               </div>
             </div>
@@ -52,7 +56,7 @@ export default function ProfilePage() {
                 <Mail className="w-5 h-5 text-sky" />
                 <div>
                   <p className="text-sm text-slate-400">Email</p>
-                  <p className="text-white-alt">{userEmail || "Не указан"}</p>
+                  <p className="text-white-alt">{user?.email || "Не указан"}</p>
                 </div>
               </div>
             </div>

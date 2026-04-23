@@ -932,6 +932,35 @@ JWT_REFRESH_SECRET=your-refresh-secret
 
 ## 📝 Changelog
 
+### v2.3.0 (2026-04-22) — Production Deploy и Cloudinary интеграция
+- ✅ **Деплой на Render:** Проект задеплоен на Render (бесплатный хостинг)
+  - Backend: https://flowerboom-api.onrender.com
+  - Frontend: https://flowerboom-web.onrender.com
+- ✅ **Cloudinary интеграция:** Загрузка фото через Cloudinary (25GB бесплатно)
+  - Memory storage вместо disk storage
+  - Автоматическая оптимизация изображений (800x800, auto quality)
+  - Постоянное хранилище (файлы не удаляются при перезапуске)
+- ✅ **Усиление безопасности:**
+  - adminLoginLimiter: 5 попыток / 15 минут (защита от брутфорса)
+  - XSS защита: санитизация всех входных данных
+  - JWT валидация: явный алгоритм HS256
+  - Строгий CSP (Content Security Policy)
+  - Скрыт X-Powered-By заголовок
+  - MIME type проверка для загружаемых файлов
+- ✅ **Конфигурация для production:**
+  - render.yaml для автоматического деплоя
+  - Автоматический seed при деплое
+  - Переменные окружения в Render
+  - .dockerignore для оптимизации сборки
+- ✅ **Обновлён .gitignore:**
+  - Защита от утечки .env файлов
+  - Исключены uploads/ и database файлы
+  - Добавлен .gitkeep для сохранения структуры папок
+- ✅ **Документация:**
+  - RENDER-DEPLOY.md — полная инструкция по деплою
+  - SETUP.md — инструкция для запуска после клонирования
+  - SECURITY-FIXES.md — список исправлений безопасности
+
 ### v2.2.0 (2026-04-22) — Исправления багов и Email интеграция
 - ✅ **Исправлен баг #1:** Создана страница `/profile/orders` с отображением истории заказов
 - ✅ **Исправлен баг #2:** authStore уже использовал persist, токен сохраняется в localStorage
