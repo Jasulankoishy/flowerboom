@@ -1,10 +1,4 @@
 import prisma from '../prisma/client.js';
-import cloudinary from '../config/cloudinary.js';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 // Get all products
 export const getAllProducts = async (req, res) => {
@@ -125,30 +119,20 @@ export const uploadImage = async (req, res) => {
   }
 
   try {
-    // Upload buffer to Cloudinary
-    const uploadStream = cloudinary.uploader.upload_stream(
-      {
-        folder: 'flowerboom',
-        resource_type: 'image',
-        transformation: [
-          { width: 800, height: 800, crop: 'limit' },
-          { quality: 'auto', fetch_format: 'auto' }
-        ]
-      },
-      (error, result) => {
-        if (error) {
-          console.error('Cloudinary upload error:', error);
-          return res.status(500).json({ message: 'Failed to upload image' });
-        }
+    // Convert buffer to base64
+    const base64 = req.file.buffer.toString('base64');
+    const mimeType = req.file.mimetype;
+    const dataUrl = `data:${mimeType};base64,${base64}`;
 
-        res.json({
-          url: result.secure_url,
-          public_id: result.public_id
-        });
-      }
-    );
-
-    // Pipe the buffer to Cloudinary
+    res.json({
+      url: dataUrl,
+      success: true
+    });
+  } catch (error) {
+    console.error('Upload error:', error);
+    res.status(500).json({ message: 'Failed to upload image' });
+  }
+};
     const { Readable } = await import('stream');
     const bufferStream = Readable.from(req.file.buffer);
     bufferStream.pipe(uploadStream);
