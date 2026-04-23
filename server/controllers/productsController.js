@@ -112,7 +112,7 @@ export const deleteProduct = async (req, res) => {
   }
 };
 
-// Upload image to Cloudinary
+// Upload image and convert to base64
 export const uploadImage = async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ message: 'No file uploaded' });
@@ -128,14 +128,6 @@ export const uploadImage = async (req, res) => {
       url: dataUrl,
       success: true
     });
-  } catch (error) {
-    console.error('Upload error:', error);
-    res.status(500).json({ message: 'Failed to upload image' });
-  }
-};
-    const { Readable } = await import('stream');
-    const bufferStream = Readable.from(req.file.buffer);
-    bufferStream.pipe(uploadStream);
   } catch (error) {
     console.error('Upload error:', error);
     res.status(500).json({ message: 'Failed to upload image' });
