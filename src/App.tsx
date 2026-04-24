@@ -9,14 +9,23 @@ import AuthCallbackPage from "./pages/AuthCallbackPage";
 import OrdersPage from "./pages/OrdersPage";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  return isAuthenticated ? <>{children}</> : <Navigate to="/auth" replace />;
+  const { isAuthenticated, accessToken, user, isAdmin } = useAuthStore();
+
+  if (!isAuthenticated || !accessToken || !user) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  if (isAdmin) {
+    return <Navigate to="/admin" replace />;
+  }
+
+  return <>{children}</>;
 }
 
 function AdminRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, isAdmin } = useAuthStore();
+  const { isAuthenticated, accessToken, isAdmin } = useAuthStore();
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated || !accessToken) {
     return <Navigate to="/admin/login" replace />;
   }
 
