@@ -112,9 +112,9 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
           </form>
 
           <div className="mt-6 p-4 bg-slate-700/50 rounded text-xs text-slate-400">
-            <p className="font-bold mb-1">Тестовые данные:</p>
+            <p className="font-bold mb-1">Данные администратора:</p>
             <p>Логин: admin</p>
-            <p>Пароль: admin123</p>
+            <p>Пароль: указан в ADMIN_PASSWORD</p>
           </div>
         </motion.div>
 

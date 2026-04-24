@@ -1,5 +1,12 @@
 import prisma from '../prisma/client.js';
 import bcrypt from 'bcrypt';
+import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.join(__dirname, '..', '..', '.env') });
 
 async function seed() {
   console.log('🌱 Seeding database...');
@@ -10,7 +17,9 @@ async function seed() {
 
     const admin = await prisma.admin.upsert({
       where: { username: process.env.ADMIN_USERNAME || 'admin' },
-      update: {},
+      update: {
+        password: adminPassword
+      },
       create: {
         username: process.env.ADMIN_USERNAME || 'admin',
         password: adminPassword
