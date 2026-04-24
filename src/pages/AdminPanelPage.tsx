@@ -141,15 +141,15 @@ export default function AdminPanelPage() {
   return (
     <div className="min-h-screen bg-ink">
       <header className="bg-slate-800 border-b-2 border-slate-700/50">
-        <div className="container mx-auto px-4 py-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="container mx-auto flex flex-col gap-4 px-4 py-4 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-3">
             <Package className="w-8 h-8 text-sky" />
             <h1 className="text-2xl font-bold text-white-alt">Админ панель</h1>
           </div>
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center sm:gap-3">
             <button
               onClick={() => setActiveTab("products")}
-              className={`flex items-center gap-2 rounded border px-4 py-2 font-bold transition-all ${
+              className={`flex items-center justify-center gap-2 rounded border px-3 py-2 text-sm font-bold transition-all sm:px-4 ${
                 activeTab === "products"
                   ? "border-sky bg-sky text-ink"
                   : "border-slate-600 text-white-alt hover:border-sky"
@@ -160,7 +160,7 @@ export default function AdminPanelPage() {
             </button>
             <button
               onClick={() => setActiveTab("orders")}
-              className={`flex items-center gap-2 rounded border px-4 py-2 font-bold transition-all ${
+              className={`flex items-center justify-center gap-2 rounded border px-3 py-2 text-sm font-bold transition-all sm:px-4 ${
                 activeTab === "orders"
                   ? "border-sky bg-sky text-ink"
                   : "border-slate-600 text-white-alt hover:border-sky"
@@ -171,7 +171,7 @@ export default function AdminPanelPage() {
             </button>
             <button
               onClick={() => setActiveTab("showcase")}
-              className={`flex items-center gap-2 rounded border px-4 py-2 font-bold transition-all ${
+              className={`flex items-center justify-center gap-2 rounded border px-3 py-2 text-sm font-bold transition-all sm:px-4 ${
                 activeTab === "showcase"
                   ? "border-sky bg-sky text-ink"
                   : "border-slate-600 text-white-alt hover:border-sky"
@@ -182,7 +182,7 @@ export default function AdminPanelPage() {
             </button>
             <button
               onClick={handleLogout}
-              className="flex items-center gap-2 px-4 py-2 bg-red-500/10 border border-red-500/30 text-red-400 rounded hover:bg-red-500/20 transition-all"
+              className="flex items-center justify-center gap-2 rounded border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-400 transition-all hover:bg-red-500/20 sm:px-4"
             >
               <LogOut className="w-4 h-4" />
               Выйти
@@ -232,7 +232,7 @@ export default function AdminPanelPage() {
 
         {activeTab === "products" ? (
           <>
-            <div className="flex justify-between items-center mb-8">
+            <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <h2 className="text-xl font-bold text-white-alt">Товары ({products.length})</h2>
               <button
                 onClick={() => {
@@ -334,14 +334,14 @@ export default function AdminPanelPage() {
                     key={product.id}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="bg-slate-800 border-2 border-slate-700/50 rounded-lg p-4 flex items-center gap-4"
+                    className="flex flex-col gap-4 rounded-lg border-2 border-slate-700/50 bg-slate-800 p-4 sm:flex-row sm:items-center"
                   >
                     <img
                       src={product.image}
                       alt={product.title}
-                      className="w-20 h-20 object-cover rounded"
+                      className="h-32 w-full rounded object-cover sm:h-20 sm:w-20"
                     />
-                    <div className="flex-1">
+                    <div className="min-w-0 flex-1">
                       <h3 className="font-bold text-white-alt">{product.title}</h3>
                       <p className="text-sky font-bold">{product.price}</p>
                       <p className="text-sm text-slate-400 line-clamp-1">{product.description}</p>
@@ -358,7 +358,7 @@ export default function AdminPanelPage() {
                         </div>
                       )}
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 sm:shrink-0">
                       <button
                         onClick={() => handleEdit(product)}
                         className="p-2 bg-blue-500/10 border border-blue-500/30 text-blue-400 rounded hover:bg-blue-500/20"
@@ -420,11 +420,11 @@ export default function AdminPanelPage() {
                     key={order.id}
                     initial={{ opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="rounded-lg border-2 border-slate-700/60 bg-slate-800 p-5"
+                    className="rounded-lg border-2 border-slate-700/60 bg-slate-800 p-4 sm:p-5"
                   >
                     <div className="mb-5 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                       <div>
-                        <div className="flex flex-wrap items-center gap-3">
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                           <h3 className="font-mono text-sm text-slate-400">#{order.id.slice(0, 8)}</h3>
                           <span className={`rounded-full border px-3 py-1 text-xs font-bold ${STATUS_COLORS[order.status]}`}>
                             {STATUS_LABELS[order.status]}

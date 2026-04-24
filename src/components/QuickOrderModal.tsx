@@ -168,14 +168,14 @@ export default function QuickOrderModal({ product, onClose }: QuickOrderModalPro
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={onClose}
-        className="fixed inset-0 bg-ink/90 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        className="fixed inset-0 z-50 flex items-center justify-center bg-ink/90 p-2 backdrop-blur-sm sm:p-4"
       >
         <motion.div
           initial={{ opacity: 0, scale: 0.9, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.9, y: 20 }}
           onClick={(e) => e.stopPropagation()}
-          className="bg-slate-800 border-2 border-sky/30 rounded-lg p-8 max-w-md w-full text-center"
+          className="w-full max-w-md rounded-lg border-2 border-sky/30 bg-slate-800 p-5 text-center sm:p-8"
         >
           <h2 className="text-2xl font-bold text-white-alt mb-4">Оформить заказ</h2>
           <p className="text-slate-400 mb-8">Войдите чтобы оформить заказ</p>
@@ -205,18 +205,18 @@ export default function QuickOrderModal({ product, onClose }: QuickOrderModalPro
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       onClick={onClose}
-      className="fixed inset-0 bg-ink/90 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/90 p-2 backdrop-blur-sm sm:p-4"
     >
       <motion.div
         initial={{ opacity: 0, scale: 0.9, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.9, y: 20 }}
         onClick={(e) => e.stopPropagation()}
-        className="bg-slate-800 border-2 border-sky/30 rounded-lg p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+        className="max-h-[94svh] w-full max-w-2xl overflow-y-auto rounded-lg border-2 border-sky/30 bg-slate-800 p-4 sm:p-8"
       >
         {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-white-alt">Быстрый заказ</h2>
+        <div className="mb-6 flex items-center justify-between gap-3">
+          <h2 className="text-xl font-bold text-white-alt sm:text-2xl">Быстрый заказ</h2>
           <button
             onClick={onClose}
             className="p-2 hover:bg-slate-700 rounded-lg transition-all"
@@ -226,18 +226,18 @@ export default function QuickOrderModal({ product, onClose }: QuickOrderModalPro
         </div>
 
         {/* Product Block */}
-        <div className="bg-slate-700/50 rounded-lg p-6 mb-6 flex gap-4">
+        <div className="mb-6 flex flex-col gap-4 rounded-lg bg-slate-700/50 p-4 sm:flex-row sm:p-6">
           <img
             src={product.image}
             alt={product.title}
-            className="w-24 h-24 object-cover rounded-[100px_100px_24px_24px]"
+            className="h-28 w-full rounded-[32px_32px_18px_18px] object-cover sm:h-24 sm:w-24 sm:rounded-[100px_100px_24px_24px]"
           />
           <div className="flex-1">
             <h3 className="text-lg font-bold text-white-alt">{product.title}</h3>
             <p className="text-sky font-bold mb-4">{product.price}</p>
 
             {/* Quantity control */}
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               <button
                 onClick={() => setQuantity((q) => Math.max(1, q - 1))}
                 className="w-8 h-8 bg-slate-600 hover:bg-slate-500 text-white-alt rounded flex items-center justify-center font-bold"
@@ -261,7 +261,7 @@ export default function QuickOrderModal({ product, onClose }: QuickOrderModalPro
               >
                 +
               </button>
-              <div className="ml-auto text-right">
+              <div className="ml-auto min-w-24 text-right">
                 <p className="text-sm text-slate-400">Итого</p>
                 <p className="text-xl font-bold text-sky">{totalPrice}₽</p>
               </div>
@@ -310,7 +310,7 @@ export default function QuickOrderModal({ product, onClose }: QuickOrderModalPro
           </div>
 
           {/* House & Apartment */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <input
                 type="text"
@@ -382,7 +382,7 @@ export default function QuickOrderModal({ product, onClose }: QuickOrderModalPro
           </div>
 
           {/* Buttons */}
-          <div className="flex gap-3 pt-4">
+          <div className="flex flex-col gap-3 pt-4 sm:flex-row">
             <button
               type="submit"
               disabled={loading}

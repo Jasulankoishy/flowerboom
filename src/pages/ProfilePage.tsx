@@ -74,21 +74,21 @@ export default function ProfilePage() {
   const handleProfileClick = () => navigate("/");
 
   return (
-    <div className="min-h-screen bg-ink flex flex-col">
+    <div className="flex min-h-screen flex-col overflow-x-hidden bg-ink px-4 py-6 sm:px-6 lg:px-8">
       <Header
         onSearchClick={handleSearchClick}
         onCartClick={handleCartClick}
         onProfileClick={handleProfileClick}
       />
-      <main className="flex-1 container mx-auto px-4 py-12">
+      <main className="container mx-auto flex-1 py-8 sm:py-12">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="max-w-2xl mx-auto"
         >
-          <div className="bg-slate-800 border-2 border-slate-700/50 rounded-lg p-8">
-            <div className="flex items-center gap-4 mb-8">
-              <div className="w-20 h-20 bg-sky/20 rounded-full flex items-center justify-center">
+          <div className="rounded-lg border-2 border-slate-700/50 bg-slate-800 p-5 sm:p-8">
+            <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center">
+              <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-sky/20">
                 {user?.avatar ? (
                   <img src={user.avatar} alt={user.name || "User"} className="w-20 h-20 rounded-full" />
                 ) : (
@@ -96,7 +96,7 @@ export default function ProfilePage() {
                 )}
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-white-alt">{user?.name || user?.email || "Профиль"}</h1>
+                <h1 className="break-words text-2xl font-bold text-white-alt sm:text-3xl">{user?.name || user?.email || "Профиль"}</h1>
                 <p className="text-slate-400">Ваши данные</p>
               </div>
             </div>
@@ -107,7 +107,7 @@ export default function ProfilePage() {
                 <div className="flex-1">
                   <p className="text-sm text-slate-400">Имя</p>
                   {!isEditingName ? (
-                    <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between gap-3">
                       <p className="text-white-alt">{user?.name || "Не указано"}</p>
                       <button
                         onClick={handleEditName}
@@ -119,7 +119,7 @@ export default function ProfilePage() {
                     </div>
                   ) : (
                     <div className="space-y-2">
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                         <input
                           type="text"
                           value={newName}
@@ -156,9 +156,9 @@ export default function ProfilePage() {
 
               <div className="flex items-center gap-3 p-4 bg-slate-700/50 rounded">
                 <Mail className="w-5 h-5 text-sky" />
-                <div>
+                <div className="min-w-0">
                   <p className="text-sm text-slate-400">Email</p>
-                  <p className="text-white-alt">{user?.email || "Не указан"}</p>
+                  <p className="break-all text-white-alt">{user?.email || "Не указан"}</p>
                 </div>
               </div>
             </div>

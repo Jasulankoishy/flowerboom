@@ -15,6 +15,7 @@
 @layer base {
   body {
     @apply bg-ink text-white-alt font-sans antialiased;
+    overflow-x: hidden;
   }
 }
 

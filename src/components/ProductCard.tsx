@@ -28,7 +28,7 @@ export default function ProductCard({ product, delay, onQuickOrder, onShowReview
         y: -8,
         transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] }
       }}
-      className={`card flex flex-col items-center p-6 rounded-lg group transition-all duration-500 ${
+      className={`card flex flex-col items-center rounded-lg p-4 transition-all duration-500 group sm:p-6 ${
         isDark
           ? 'bg-gray-800 border-2 border-gray-700/50 hover:border-pink-500/30'
           : 'bg-slate-800 border-2 border-slate-700/50 hover:border-sky/30'
@@ -63,7 +63,7 @@ export default function ProductCard({ product, delay, onQuickOrder, onShowReview
 
       <div className="mt-6 w-full space-y-4">
         <div className="flex items-start justify-between gap-3">
-          <h3 className="text-xl font-bold text-white-alt uppercase tracking-tight">{product.title}</h3>
+          <h3 className="text-lg font-bold uppercase tracking-tight text-white-alt sm:text-xl">{product.title}</h3>
           <div className="shrink-0 rounded border border-sky/30 bg-sky/10 px-3 py-2 text-sm font-black text-sky">
             {product.price}
           </div>

@@ -108,14 +108,14 @@ export default function OrdersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-ink py-12 px-4">
+    <div className="min-h-screen overflow-x-hidden bg-ink px-4 py-8 sm:py-12">
       <div className="max-w-4xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <h1 className="text-4xl font-bold text-white-alt mb-2">Мои заказы</h1>
+          <h1 className="mb-2 text-3xl font-bold text-white-alt sm:text-4xl">Мои заказы</h1>
           <p className="text-slate-400">
             Всего заказов: {orders.length}
           </p>
@@ -128,10 +128,10 @@ export default function OrdersPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              className="bg-slate-800 border-2 border-sky/30 rounded-lg p-6"
+              className="rounded-lg border-2 border-sky/30 bg-slate-800 p-4 sm:p-6"
             >
               {/* Header */}
-              <div className="flex justify-between items-start mb-6">
+              <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <p className="text-sm text-slate-400">
                     Заказ от {formatDate(order.createdAt)}
@@ -159,14 +159,14 @@ export default function OrdersPage() {
                   {order.items.map((item) => (
                     <div
                       key={item.id}
-                      className="flex gap-4 bg-slate-700/50 rounded-lg p-4"
+                    className="flex gap-3 rounded-lg bg-slate-700/50 p-3 sm:gap-4 sm:p-4"
                     >
                       <img
                         src={item.product.image}
                         alt={item.product.title}
-                        className="w-16 h-16 object-cover rounded-[50px_50px_12px_12px]"
+                        className="h-14 w-14 shrink-0 rounded-[42px_42px_10px_10px] object-cover sm:h-16 sm:w-16 sm:rounded-[50px_50px_12px_12px]"
                       />
-                      <div className="flex-1">
+                      <div className="min-w-0 flex-1">
                         <h4 className="text-white-alt font-bold">
                           {item.product.title}
                         </h4>
@@ -174,7 +174,7 @@ export default function OrdersPage() {
                           {item.quantity} шт. × {item.price}₽
                         </p>
                       </div>
-                      <div className="text-right">
+                      <div className="hidden text-right sm:block">
                         <p className="text-sky font-bold">
                           {(parseFloat(item.price) * item.quantity).toFixed(2)}₽
                         </p>
@@ -237,7 +237,7 @@ export default function OrdersPage() {
               )}
 
               {/* Total */}
-              <div className="flex justify-between items-center pt-4 border-t border-slate-700">
+              <div className="flex items-center justify-between gap-4 border-t border-slate-700 pt-4">
                 <span className="text-slate-400 font-bold">Итого:</span>
                 <span className="text-2xl font-bold text-sky">
                   {order.totalPrice}₽

@@ -123,7 +123,7 @@ export default function AdminShowcasePanel({ products }: AdminShowcasePanelProps
         <button
           onClick={handleCreateClick}
           disabled={!canCreate}
-          className="flex items-center gap-2 rounded bg-sky px-4 py-2 font-bold text-ink transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
+          className="flex items-center justify-center gap-2 rounded bg-sky px-4 py-2 font-bold text-ink transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
         >
           <Plus className="h-5 w-5" />
           Добавить слайд
@@ -152,7 +152,7 @@ export default function AdminShowcasePanel({ products }: AdminShowcasePanelProps
         <motion.div
           initial={{ opacity: 0, y: -16 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8 rounded-lg border-2 border-slate-700/50 bg-slate-800 p-6"
+          className="mb-8 rounded-lg border-2 border-slate-700/50 bg-slate-800 p-4 sm:p-6"
         >
           <h3 className="mb-4 text-lg font-bold text-white-alt">
             {editingSlide ? "Редактировать слайд" : "Новый слайд витрины"}
@@ -264,7 +264,7 @@ export default function AdminShowcasePanel({ products }: AdminShowcasePanelProps
                 className="h-40 w-full rounded object-cover md:h-28"
                 referrerPolicy="no-referrer"
               />
-              <div>
+              <div className="min-w-0">
                 <div className="mb-2 flex flex-wrap items-center gap-2">
                   <span className="rounded-full border border-sky/30 bg-sky/10 px-2 py-1 text-xs font-bold text-sky">
                     #{slide.sortOrder}

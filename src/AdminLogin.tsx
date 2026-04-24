@@ -34,9 +34,9 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
+          className="mb-8 text-center sm:mb-12"
         >
-          <h1 className="text-5xl font-extrabold text-sky uppercase tracking-tighter mb-2">
+          <h1 className="mb-2 text-4xl font-extrabold uppercase tracking-tighter text-sky sm:text-5xl">
             Flowerboom
           </h1>
           <p className="text-slate-400 text-sm uppercase tracking-widest">
@@ -48,7 +48,7 @@ export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.2 }}
-          className="bg-slate-800 border-2 border-slate-700/50 rounded-lg p-8"
+          className="rounded-lg border-2 border-slate-700/50 bg-slate-800 p-5 sm:p-8"
         >
           <h2 className="text-2xl font-bold text-white-alt mb-2">Вход в админку</h2>
           <p className="text-slate-400 text-sm mb-8">

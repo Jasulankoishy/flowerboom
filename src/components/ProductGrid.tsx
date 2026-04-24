@@ -35,10 +35,10 @@ export default function ProductGrid({ onQuickOrder, onShowReviews, selectedOccas
   return (
     <section id="catalog" className="mb-20 scroll-mt-8">
       <div className="mb-8">
-        <div className="mb-4 flex items-end justify-between gap-4">
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-xs font-black uppercase tracking-[0.35em] text-sky">Повод</p>
-            <h2 className="mt-2 text-2xl font-black uppercase tracking-tight text-white-alt">
+            <h2 className="mt-2 text-xl font-black uppercase tracking-tight text-white-alt sm:text-2xl">
               Выберите настроение букета
             </h2>
           </div>

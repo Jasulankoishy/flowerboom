@@ -130,7 +130,7 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.2 }}
-      className="fixed inset-0 bg-ink/90 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/90 p-2 backdrop-blur-sm sm:p-4"
       onClick={onClose}
     >
       <motion.div
@@ -138,13 +138,13 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.96, y: 20 }}
         transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-        className="bg-slate-800 border-2 border-sky/30 rounded-lg w-full max-w-5xl max-h-[90vh] overflow-y-auto"
+        className="max-h-[94svh] w-full max-w-5xl overflow-y-auto rounded-lg border-2 border-sky/30 bg-slate-800"
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-700 bg-slate-800/95 px-6 py-5 backdrop-blur">
+        <div className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-slate-700 bg-slate-800/95 px-4 py-4 backdrop-blur sm:px-6 sm:py-5">
           <div>
-            <p className="text-xs uppercase tracking-[0.35em] text-sky">Smart checkout</p>
-            <h2 className="text-2xl font-bold uppercase tracking-tight text-white-alt">Корзина</h2>
+            <p className="text-[10px] uppercase tracking-[0.24em] text-sky sm:text-xs sm:tracking-[0.35em]">Smart checkout</p>
+            <h2 className="text-xl font-bold uppercase tracking-tight text-white-alt sm:text-2xl">Корзина</h2>
           </div>
           <button
             onClick={onClose}
@@ -162,13 +162,13 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="grid gap-0 lg:grid-cols-[1.05fr_0.95fr]">
-            <div className="space-y-4 border-b border-slate-700 p-6 lg:border-b-0 lg:border-r">
+            <div className="space-y-4 border-b border-slate-700 p-4 sm:p-6 lg:border-b-0 lg:border-r">
               {items.map((item) => (
-                <div key={item.productId} className="grid grid-cols-[88px_1fr] gap-4 rounded-lg border border-slate-700 bg-slate-900/40 p-4">
+                <div key={item.productId} className="grid grid-cols-[72px_1fr] gap-3 rounded-lg border border-slate-700 bg-slate-900/40 p-3 sm:grid-cols-[88px_1fr] sm:gap-4 sm:p-4">
                   <img
                     src={item.image}
                     alt={item.title}
-                    className="h-24 w-22 rounded-[56px_56px_18px_18px] object-cover"
+                    className="h-20 w-[72px] rounded-[42px_42px_14px_14px] object-cover sm:h-24 sm:w-[88px] sm:rounded-[56px_56px_18px_18px]"
                   />
                   <div className="min-w-0">
                     <div className="flex items-start justify-between gap-3">
@@ -186,7 +186,7 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
                       </button>
                     </div>
 
-                    <div className="mt-5 flex items-center justify-between">
+                    <div className="mt-4 flex items-center justify-between">
                       <div className="flex items-center rounded border border-slate-600 bg-slate-800">
                         <button
                           type="button"
@@ -216,12 +216,12 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
 
               <div className="rounded-lg border border-sky/30 bg-sky/10 p-5">
                 <p className="text-sm uppercase tracking-[0.25em] text-sky">Итого</p>
-                <p className="mt-2 text-4xl font-black text-white-alt">{formatMoney(getTotalPrice())}</p>
+                <p className="mt-2 text-3xl font-black text-white-alt sm:text-4xl">{formatMoney(getTotalPrice())}</p>
                 <p className="mt-2 text-sm text-slate-400">Финальная сумма пересчитывается сервером по актуальным ценам.</p>
               </div>
             </div>
 
-            <div className="space-y-4 p-6">
+            <div className="space-y-4 p-4 sm:p-6">
               {error && <div className="rounded border border-red-500/50 bg-red-500/10 p-3 text-sm text-red-300">{error}</div>}
               {successMessage && <div className="rounded border border-green-500/50 bg-green-500/10 p-3 text-sm text-green-300">{successMessage}</div>}
               {fieldErrors.items && <div className="rounded border border-red-500/50 bg-red-500/10 p-3 text-sm text-red-300">{fieldErrors.items}</div>}
@@ -247,7 +247,7 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <input
                     value={formData.house}

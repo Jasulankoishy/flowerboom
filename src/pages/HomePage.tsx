@@ -26,13 +26,13 @@ export default function HomePage() {
   const handleShowReviews = () => setShowSearch(true);
 
   return (
-    <div className={`min-h-screen flex flex-col transition-colors duration-500 ${isDark ? 'bg-gray-900' : 'bg-ink'}`}>
+    <div className={`min-h-screen overflow-x-hidden px-4 py-6 transition-colors duration-500 sm:px-6 lg:px-8 ${isDark ? 'bg-gray-900' : 'bg-ink'}`}>
       <Header
         onSearchClick={handleSearchClick}
         onCartClick={handleCartClick}
         onProfileClick={handleProfileClick}
       />
-      <main className="flex-1">
+      <main className="mx-auto w-full max-w-[1560px] flex-1">
         <ProHeroShowcase onQuickOrder={handleQuickOrder} />
         <ProductGrid
           onQuickOrder={handleQuickOrder}
@@ -49,7 +49,9 @@ export default function HomePage() {
           onClose={() => setQuickOrderProduct(null)}
         />
       )}
-      <Footer />
+      <div className="mx-auto w-full max-w-[1560px]">
+        <Footer />
+      </div>
     </div>
   );
 }

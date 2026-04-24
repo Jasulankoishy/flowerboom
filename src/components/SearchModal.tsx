@@ -32,7 +32,7 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.2 }}
-      className="fixed inset-0 bg-ink/90 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/90 p-2 backdrop-blur-sm sm:p-4"
       onClick={onClose}
     >
       <motion.div
@@ -40,13 +40,13 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.94, y: 20 }}
         transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-        className="bg-slate-800 border-2 border-sky/30 rounded-lg p-6 max-w-3xl w-full max-h-[86vh] overflow-y-auto"
+        className="max-h-[94svh] w-full max-w-3xl overflow-y-auto rounded-lg border-2 border-sky/30 bg-slate-800 p-4 sm:p-6"
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="mb-6 flex items-center justify-between">
+        <div className="mb-6 flex items-center justify-between gap-3">
           <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-sky">Live search</p>
-            <h2 className="text-2xl font-bold uppercase tracking-tight text-white-alt">Поиск букетов</h2>
+            <p className="text-[10px] uppercase tracking-[0.24em] text-sky sm:text-xs sm:tracking-[0.3em]">Live search</p>
+            <h2 className="text-xl font-bold uppercase tracking-tight text-white-alt sm:text-2xl">Поиск букетов</h2>
           </div>
           <button
             onClick={onClose}
@@ -75,8 +75,8 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
             </p>
           ) : (
             results.map((product) => (
-              <div key={product.id} className="grid grid-cols-[72px_1fr_auto] items-center gap-4 rounded border border-slate-700 bg-slate-900/40 p-3">
-                <img src={product.image} alt={product.title} className="h-18 w-18 rounded object-cover" />
+              <div key={product.id} className="grid grid-cols-[64px_1fr] items-center gap-3 rounded border border-slate-700 bg-slate-900/40 p-3 sm:grid-cols-[72px_1fr_auto] sm:gap-4">
+                <img src={product.image} alt={product.title} className="h-16 w-16 rounded object-cover sm:h-[72px] sm:w-[72px]" />
                 <div className="min-w-0">
                   <h3 className="truncate font-bold text-white-alt">{product.title}</h3>
                   <p className="truncate text-sm text-slate-400">{product.description}</p>
@@ -84,7 +84,7 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
                 </div>
                 <button
                   onClick={() => addItem(product)}
-                  className="rounded border border-sky/40 p-3 text-sky transition-all hover:bg-sky hover:text-ink"
+                  className="col-span-2 rounded border border-sky/40 p-3 text-sky transition-all hover:bg-sky hover:text-ink sm:col-auto"
                   aria-label="Добавить в корзину"
                 >
                   <ShoppingBag className="h-5 w-5" />

@@ -47,7 +47,7 @@ export default function ProHeroShowcase({ onQuickOrder }: ProHeroShowcaseProps) 
   const product = activeSlide.product;
 
   return (
-    <section className="relative mb-24 overflow-hidden rounded-[2rem] border border-sky/20 bg-[#050505] px-5 py-8 shadow-2xl shadow-black/40 md:px-10 md:py-12">
+    <section className="relative mb-14 overflow-hidden rounded-3xl border border-sky/20 bg-[#050505] px-4 py-6 shadow-2xl shadow-black/40 sm:px-6 md:mb-24 md:rounded-[2rem] md:px-10 md:py-12">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_68%_28%,rgba(212,175,55,0.24),transparent_30%),radial-gradient(circle_at_24%_74%,rgba(255,255,255,0.08),transparent_26%),linear-gradient(135deg,#050505_0%,#0f1216_52%,#211706_100%)]" />
       <motion.div
         className="absolute -right-24 top-16 h-72 w-72 rounded-full bg-sky/20 blur-3xl"
@@ -62,12 +62,12 @@ export default function ProHeroShowcase({ onQuickOrder }: ProHeroShowcaseProps) 
         Flower Boom
       </motion.div>
 
-      <div className="relative grid min-h-[620px] gap-8 lg:grid-cols-[0.88fr_1.12fr] lg:items-center">
+      <div className="relative grid min-h-[auto] gap-8 lg:min-h-[620px] lg:grid-cols-[0.88fr_1.12fr] lg:items-center">
         <div className="z-10">
           <motion.p
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-5 inline-flex items-center gap-2 rounded-full border border-sky/30 bg-white/[0.03] px-4 py-2 text-xs font-black uppercase tracking-[0.28em] text-sky"
+            className="mb-4 inline-flex items-center gap-2 rounded-full border border-sky/30 bg-white/[0.03] px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-sky sm:px-4 sm:text-xs sm:tracking-[0.28em]"
           >
             <Sparkles className="h-4 w-4" />
             Premium flower scene
@@ -81,29 +81,29 @@ export default function ProHeroShowcase({ onQuickOrder }: ProHeroShowcaseProps) 
               exit={{ opacity: 0, x: -52, filter: "blur(10px)" }}
               transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
             >
-              <div className="mb-4 text-sm font-black uppercase tracking-[0.45em] text-slate-500">
+              <div className="mb-3 text-xs font-black uppercase tracking-[0.35em] text-slate-500 sm:text-sm sm:tracking-[0.45em]">
                 Showcase {String(activeIndex + 1).padStart(2, "0")}
               </div>
-              <h1 className="max-w-3xl text-5xl font-black uppercase leading-[0.86] tracking-[-0.06em] text-white-alt md:text-7xl xl:text-8xl">
+              <h1 className="max-w-3xl text-[clamp(2.7rem,16vw,5rem)] font-black uppercase leading-[0.88] tracking-[-0.06em] text-white-alt md:text-7xl xl:text-8xl">
                 {activeSlide.title}
               </h1>
-              <p className="mt-6 max-w-xl text-base leading-relaxed text-slate-300 md:text-lg">
+              <p className="mt-5 max-w-xl text-sm leading-relaxed text-slate-300 sm:text-base md:text-lg">
                 {activeSlide.description}
               </p>
-              <div className="mt-7 flex flex-wrap items-center gap-4">
-                <div className="rounded-2xl border border-sky/30 bg-sky/10 px-5 py-3 text-2xl font-black text-sky">
+              <div className="mt-6 grid gap-3 sm:flex sm:flex-wrap sm:items-center sm:gap-4">
+                <div className="rounded-2xl border border-sky/30 bg-sky/10 px-4 py-3 text-xl font-black text-sky sm:px-5 sm:text-2xl">
                   {product.price}
                 </div>
                 <button
                   onClick={() => onQuickOrder(product)}
-                  className="inline-flex items-center gap-3 rounded-2xl bg-sky px-6 py-4 text-sm font-black uppercase tracking-widest text-ink shadow-lg shadow-sky/20 transition-all hover:-translate-y-0.5 hover:brightness-110 active:scale-[0.98]"
+                  className="inline-flex items-center justify-center gap-3 rounded-2xl bg-sky px-5 py-4 text-xs font-black uppercase tracking-widest text-ink shadow-lg shadow-sky/20 transition-all hover:-translate-y-0.5 hover:brightness-110 active:scale-[0.98] sm:px-6 sm:text-sm"
                 >
                   <Zap className="h-5 w-5" />
                   Заказать
                 </button>
                 <button
                   onClick={() => document.getElementById("catalog")?.scrollIntoView({ behavior: "smooth" })}
-                  className="inline-flex items-center gap-3 rounded-2xl border border-white/15 px-6 py-4 text-sm font-black uppercase tracking-widest text-white-alt transition-all hover:border-sky hover:text-sky"
+                  className="inline-flex items-center justify-center gap-3 rounded-2xl border border-white/15 px-5 py-4 text-xs font-black uppercase tracking-widest text-white-alt transition-all hover:border-sky hover:text-sky sm:px-6 sm:text-sm"
                 >
                   <ArrowDown className="h-5 w-5" />
                   Каталог
@@ -113,7 +113,7 @@ export default function ProHeroShowcase({ onQuickOrder }: ProHeroShowcaseProps) 
           </AnimatePresence>
         </div>
 
-        <div className="relative flex min-h-[420px] items-center justify-center">
+        <div className="relative flex min-h-[320px] items-center justify-center sm:min-h-[420px]">
           <AnimatePresence mode="wait">
             <motion.div
               key={activeSlide.id}
@@ -131,12 +131,12 @@ export default function ProHeroShowcase({ onQuickOrder }: ProHeroShowcaseProps) 
               <motion.img
                 src={activeSlide.image}
                 alt={activeSlide.title}
-                className="relative z-10 mx-auto h-[420px] w-full rounded-[2rem] object-cover object-center shadow-2xl shadow-black/50 md:h-[560px]"
+                className="relative z-10 mx-auto h-[320px] w-full rounded-3xl object-cover object-center shadow-2xl shadow-black/50 sm:h-[420px] md:h-[560px] md:rounded-[2rem]"
                 referrerPolicy="no-referrer"
                 animate={{ y: [0, -14, 0] }}
                 transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
               />
-              <div className="absolute -bottom-4 left-6 z-20 rounded-2xl border border-white/10 bg-black/60 px-5 py-4 backdrop-blur-xl">
+              <div className="absolute -bottom-4 left-3 right-3 z-20 rounded-2xl border border-white/10 bg-black/60 px-4 py-3 backdrop-blur-xl sm:left-6 sm:right-auto sm:px-5 sm:py-4">
                 <p className="text-xs font-black uppercase tracking-[0.32em] text-sky">Linked bouquet</p>
                 <p className="mt-1 font-bold text-white-alt">{product.title}</p>
               </div>
