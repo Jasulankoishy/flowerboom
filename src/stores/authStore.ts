@@ -45,6 +45,7 @@ export const useAuthStore = create<AuthState>()(
           isAuthenticated: true,
           accessToken,
           refreshToken,
+          user: null,
           isAdmin: true,
         });
       },

@@ -11,12 +11,12 @@ import OrdersPage from "./pages/OrdersPage";
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, accessToken, user, isAdmin } = useAuthStore();
 
-  if (!isAuthenticated || !accessToken || !user) {
+  if (isAdmin) {
     return <Navigate to="/auth" replace />;
   }
 
-  if (isAdmin) {
-    return <Navigate to="/admin" replace />;
+  if (!isAuthenticated || !accessToken || !user) {
+    return <Navigate to="/auth" replace />;
   }
 
   return <>{children}</>;
