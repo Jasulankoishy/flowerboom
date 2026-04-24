@@ -11,8 +11,7 @@
     "build:server": "cd server && npx prisma generate && npx prisma migrate deploy",
     "preview": "vite preview",
     "clean": "rm -rf dist",
-    "lint": "tsc --noEmit",
-    "postinstall": "cd server && npx prisma generate"
+    "lint": "tsc --noEmit"
   },
   "dependencies": {
     "@google/genai": "^1.29.0",
