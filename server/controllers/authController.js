@@ -42,6 +42,7 @@ export const register = async (req, res) => {
       message: 'Регистрация успешна',
       accessToken,
       refreshToken,
+      isNewUser: !user.name, // true если имя не заполнено
       user: {
         id: user.id,
         email: user.email,
@@ -101,6 +102,7 @@ export const login = async (req, res) => {
       message: 'Вход выполнен',
       accessToken,
       refreshToken,
+      isNewUser: !user.name, // true если имя не заполнено
       user: {
         id: user.id,
         email: user.email,
@@ -248,6 +250,46 @@ export const adminLogin = async (req, res) => {
   } catch (error) {
     console.error('Admin login error:', error);
     res.status(500).json({ success: false, message: 'Failed to login' });
+  }
+};
+
+// Set user name
+export const setName = async (req, res) => {
+  const { name } = req.body;
+
+  try {
+    if (!name || name.trim().length < 2) {
+      return res.status(400).json({
+        success: false,
+        message: 'Имя должно содержать минимум 2 символа'
+      });
+    }
+
+    if (name.trim().length > 50) {
+      return res.status(400).json({
+        success: false,
+        message: 'Имя слишком длинное (максимум 50 символов)'
+      });
+    }
+
+    const user = await prisma.user.update({
+      where: { id: req.user.userId },
+      data: { name: name.trim() }
+    });
+
+    res.json({
+      success: true,
+      message: 'Имя успешно сохранено',
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        avatar: user.avatar
+      }
+    });
+  } catch (error) {
+    console.error('Set name error:', error);
+    res.status(500).json({ success: false, message: 'Ошибка сохранения имени' });
   }
 };
 

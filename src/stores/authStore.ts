@@ -18,6 +18,7 @@ interface AuthState {
   login: (accessToken: string, refreshToken: string, user: User) => void;
   loginAdmin: (accessToken: string, refreshToken: string) => void;
   logout: () => void;
+  setName: (name: string) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -56,6 +57,12 @@ export const useAuthStore = create<AuthState>()(
           user: null,
           isAdmin: false,
         });
+      },
+
+      setName: (name: string) => {
+        set((state) => ({
+          user: state.user ? { ...state.user, name } : null,
+        }));
       },
     }),
     {

@@ -5,6 +5,7 @@ interface AuthResponse {
   message?: string;
   accessToken?: string;
   refreshToken?: string;
+  isNewUser?: boolean;
   user?: {
     id: string;
     email: string;
@@ -70,6 +71,20 @@ export const authApi = {
     });
     const data = await response.json();
     if (!response.ok) throw new Error(data.message || "Ошибка входа");
+    return data;
+  },
+
+  async setName(name: string, accessToken: string): Promise<AuthResponse> {
+    const response = await fetch(`${API_URL}${API_ENDPOINTS.setName}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ name }),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || "Ошибка сохранения имени");
     return data;
   },
 };

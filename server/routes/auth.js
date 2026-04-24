@@ -1,9 +1,10 @@
 import express from 'express';
 import passport from '../config/passport.js';
-import { register, login, forgotPassword, resetPassword, adminLogin, refreshToken } from '../controllers/authController.js';
+import { register, login, forgotPassword, resetPassword, adminLogin, refreshToken, setName } from '../controllers/authController.js';
 import { validateRegister, validateLogin, validateEmail, validateResetPassword, validateAdminLogin } from '../middleware/validate.js';
 import { authLimiter, adminLoginLimiter } from '../middleware/rateLimiter.js';
 import { generateAccessToken, generateRefreshToken } from '../utils/jwt.js';
+import { authenticateToken } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -14,6 +15,9 @@ router.post('/login', authLimiter, validateLogin, login);
 // Password reset
 router.post('/forgot-password', authLimiter, validateEmail, forgotPassword);
 router.post('/reset-password', authLimiter, validateResetPassword, resetPassword);
+
+// Set user name (protected route)
+router.post('/set-name', authenticateToken, setName);
 
 // Google OAuth (only if credentials are configured)
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
@@ -36,8 +40,11 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
       });
       const refreshToken = generateRefreshToken({ userId: req.user.id });
 
-      // Redirect to frontend with tokens
-      const redirectUrl = `${process.env.FRONTEND_URL}/auth/callback?token=${accessToken}&refreshToken=${refreshToken}`;
+      // Check if user needs to set name
+      const isNewUser = !req.user.name;
+
+      // Redirect to frontend with tokens and isNewUser flag
+      const redirectUrl = `${process.env.FRONTEND_URL}/auth/callback?token=${accessToken}&refreshToken=${refreshToken}&isNewUser=${isNewUser}`;
       res.redirect(redirectUrl);
     }
   );

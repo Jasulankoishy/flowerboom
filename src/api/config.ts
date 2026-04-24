@@ -8,6 +8,7 @@ export const API_ENDPOINTS = {
   resetPassword: "/api/auth/reset-password",
   googleAuth: "/api/auth/google",
   adminLogin: "/api/auth/admin/login",
+  setName: "/api/auth/set-name",
 
   // Products
   products: "/api/products",

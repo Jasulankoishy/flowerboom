@@ -11,6 +11,7 @@ export default function AuthCallbackPage() {
   useEffect(() => {
     const token = searchParams.get("token");
     const refreshToken = searchParams.get("refreshToken");
+    const isNewUser = searchParams.get("isNewUser") === "true";
 
     if (token && refreshToken) {
       // Decode JWT to get user info (simple base64 decode)
@@ -22,7 +23,13 @@ export default function AuthCallbackPage() {
         };
 
         login(token, refreshToken, user);
-        navigate("/");
+
+        // Если новый пользователь без имени, перенаправляем на форму имени
+        if (isNewUser) {
+          navigate("/auth?mode=name&token=" + token);
+        } else {
+          navigate("/");
+        }
       } catch (error) {
         console.error("Failed to parse token:", error);
         navigate("/auth?error=invalid_token");

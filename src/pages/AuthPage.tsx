@@ -1,14 +1,15 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Eye, EyeOff, Flower2 } from "lucide-react";
 import { authApi } from "../api/auth";
 import { useAuthStore } from "../stores/authStore";
 
-type AuthMode = "login" | "register" | "forgot" | "reset";
+type AuthMode = "login" | "register" | "forgot" | "reset" | "name";
 
 export default function AuthPage() {
   const navigate = useNavigate();
-  const { login } = useAuthStore();
+  const [searchParams] = useSearchParams();
+  const { login, setName: setStoreName } = useAuthStore();
 
   const [mode, setMode] = useState<AuthMode>("login");
   const [email, setEmail] = useState("");
@@ -16,10 +17,23 @@ export default function AuthPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [code, setCode] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [name, setName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [tempAccessToken, setTempAccessToken] = useState<string | null>(null);
+
+  // Проверяем URL параметры при загрузке (для Google OAuth)
+  useEffect(() => {
+    const urlMode = searchParams.get("mode");
+    const urlToken = searchParams.get("token");
+
+    if (urlMode === "name" && urlToken) {
+      setMode("name");
+      setTempAccessToken(urlToken);
+    }
+  }, [searchParams]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,7 +44,14 @@ export default function AuthPage() {
       const response = await authApi.login(email, password);
       if (response.accessToken && response.refreshToken && response.user) {
         login(response.accessToken, response.refreshToken, response.user);
-        navigate("/");
+
+        // Проверяем, нужно ли запросить имя
+        if (response.isNewUser) {
+          setTempAccessToken(response.accessToken);
+          setMode("name");
+        } else {
+          navigate("/");
+        }
       }
     } catch (err: any) {
       setError(err.message || "Ошибка входа");
@@ -64,7 +85,14 @@ export default function AuthPage() {
       const response = await authApi.register(email, password);
       if (response.accessToken && response.refreshToken && response.user) {
         login(response.accessToken, response.refreshToken, response.user);
-        navigate("/");
+
+        // Проверяем, нужно ли запросить имя
+        if (response.isNewUser) {
+          setTempAccessToken(response.accessToken);
+          setMode("name");
+        } else {
+          navigate("/");
+        }
       }
     } catch (err: any) {
       setError(err.message || "Ошибка регистрации");
@@ -129,6 +157,40 @@ export default function AuthPage() {
     authApi.loginWithGoogle();
   };
 
+  const handleSetName = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    if (name.trim().length < 2) {
+      setError("Имя должно содержать минимум 2 символа");
+      return;
+    }
+
+    if (name.trim().length > 50) {
+      setError("Имя слишком длинное (максимум 50 символов)");
+      return;
+    }
+
+    if (!tempAccessToken) {
+      setError("Ошибка авторизации");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await authApi.setName(name.trim(), tempAccessToken);
+      if (response.user?.name) {
+        setStoreName(response.user.name);
+      }
+      navigate("/");
+    } catch (err: any) {
+      setError(err.message || "Ошибка сохранения имени");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
@@ -143,6 +205,7 @@ export default function AuthPage() {
             {mode === "register" && "Создайте новый аккаунт"}
             {mode === "forgot" && "Восстановление пароля"}
             {mode === "reset" && "Введите новый пароль"}
+            {mode === "name" && "Как тебя зовут?"}
           </p>
         </div>
 
@@ -470,6 +533,38 @@ export default function AuthPage() {
                 className="w-full bg-pink-600 text-white py-3 rounded-lg font-semibold hover:bg-pink-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? "Сохранение..." : "Сохранить пароль"}
+              </button>
+            </form>
+          )}
+
+          {/* Set Name Form */}
+          {mode === "name" && (
+            <form onSubmit={handleSetName} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Твоё имя
+                </label>
+                <p className="text-sm text-gray-400 mb-3">
+                  Это имя будет отображаться в твоём профиле
+                </p>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                  maxLength={50}
+                  autoFocus
+                  className="w-full px-4 py-3 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent placeholder-gray-400"
+                  placeholder="Введи своё имя"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-pink-600 text-white py-3 rounded-lg font-semibold hover:bg-pink-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? "Сохранение..." : "Продолжить"}
               </button>
             </form>
           )}
