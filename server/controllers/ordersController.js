@@ -1,8 +1,25 @@
 import prisma from '../prisma/client.js';
 
+const parsePrice = (value) => {
+  const normalized = String(value || '').replace(/\s/g, '').replace(',', '.').replace(/[^\d.]/g, '');
+  const price = Number.parseFloat(normalized);
+  return Number.isFinite(price) ? price : 0;
+};
+
 // Create order
 export const createOrder = async (req, res) => {
-  const { items, city, street, house, apartment, phone, deliveryDate, deliveryTime, totalPrice } = req.body;
+  const {
+    items,
+    city,
+    street,
+    house,
+    apartment,
+    phone,
+    deliveryDate,
+    deliveryTime,
+    giftCardEnabled = false,
+    giftMessage = ''
+  } = req.body;
 
   try {
     // Validation
@@ -38,10 +55,6 @@ export const createOrder = async (req, res) => {
     if (!deliveryTime) {
       return res.status(400).json({ error: 'Delivery time is required' });
     }
-    if (!totalPrice) {
-      return res.status(400).json({ error: 'Total price is required' });
-    }
-
     // Verify all products exist
     const productIds = items.map(item => item.productId);
     const products = await prisma.product.findMany({
@@ -51,6 +64,30 @@ export const createOrder = async (req, res) => {
     if (products.length !== productIds.length) {
       return res.status(400).json({ error: 'Some products not found' });
     }
+
+    const productMap = new Map(products.map(product => [product.id, product]));
+    const normalizedItems = items.map(item => {
+      const quantity = Number.parseInt(item.quantity, 10);
+      const product = productMap.get(item.productId);
+
+      if (!product || !Number.isInteger(quantity) || quantity < 1 || quantity > 99) {
+        return null;
+      }
+
+      return {
+        productId: item.productId,
+        quantity,
+        price: product.price,
+        lineTotal: parsePrice(product.price) * quantity
+      };
+    });
+
+    if (normalizedItems.some(item => item === null)) {
+      return res.status(400).json({ error: 'Invalid order items' });
+    }
+
+    const computedTotal = normalizedItems.reduce((sum, item) => sum + item.lineTotal, 0).toFixed(2);
+    const cleanGiftMessage = giftCardEnabled ? String(giftMessage || '').trim().slice(0, 300) : null;
 
     // Create order with items
     const order = await prisma.order.create({
@@ -63,10 +100,12 @@ export const createOrder = async (req, res) => {
         phone: phone.trim(),
         deliveryDate,
         deliveryTime,
-        totalPrice,
+        totalPrice: computedTotal,
+        giftCardEnabled: Boolean(giftCardEnabled),
+        giftMessage: cleanGiftMessage,
         status: 'pending',
         items: {
-          create: items.map(item => ({
+          create: normalizedItems.map(item => ({
             productId: item.productId,
             quantity: item.quantity,
             price: item.price

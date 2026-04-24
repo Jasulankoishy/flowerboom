@@ -11,8 +11,8 @@ export const useAuth = () => {
     setLoading(true);
     setError(null);
     try {
-      const result = await authApi.sendCode(email);
-      return result;
+      await authApi.forgotPassword(email);
+      return { success: true, devMode: true };
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to send code";
       setError(message);
@@ -26,11 +26,7 @@ export const useAuth = () => {
     setLoading(true);
     setError(null);
     try {
-      const result = await authApi.verifyCode(email, code);
-      if (result.success && result.accessToken) {
-        login(result.accessToken, email);
-      }
-      return result;
+      return { success: false, message: "Используйте новую страницу входа" };
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to verify code";
       setError(message);
@@ -46,7 +42,7 @@ export const useAuth = () => {
     try {
       const result = await authApi.adminLogin(username, password);
       if (result.success && result.accessToken) {
-        loginAdmin(result.accessToken);
+        loginAdmin(result.accessToken, result.refreshToken || "");
       }
       return result;
     } catch (err) {

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
 import { useAuthStore } from "../stores";
 import { ordersApi, type Order } from "../api/orders";
-import { Package, MapPin, Phone, Calendar, Clock } from "lucide-react";
+import { Package, MapPin, Phone, Calendar, Clock, Gift } from "lucide-react";
 
 const STATUS_LABELS: Record<string, string> = {
   pending: "Ожидает",
@@ -21,7 +21,7 @@ const STATUS_COLORS: Record<string, string> = {
 
 export default function OrdersPage() {
   const navigate = useNavigate();
-  const { isAuthenticated, userToken } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -223,6 +223,18 @@ export default function OrdersPage() {
                   <p className="text-slate-300 text-sm">{order.deliveryTime}</p>
                 </div>
               </div>
+
+              {order.giftCardEnabled && (
+                <div className="bg-slate-700/50 rounded-lg p-4 mb-6">
+                  <h3 className="text-sm font-bold text-white-alt mb-3 flex items-center gap-2">
+                    <Gift className="w-4 h-4 text-sky" />
+                    Открытка
+                  </h3>
+                  <p className="text-slate-300 text-sm">
+                    {order.giftMessage || "Без текста"}
+                  </p>
+                </div>
+              )}
 
               {/* Total */}
               <div className="flex justify-between items-center pt-4 border-t border-slate-700">

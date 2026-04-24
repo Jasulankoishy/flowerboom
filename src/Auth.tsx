@@ -84,7 +84,10 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
 
   const handleSocialAuth = (provider: string) => {
     // Mock social auth — устанавливаем состояние авторизации, затем переходим
-    login("social-mock-token", `${provider.toLowerCase()}-user@social.com`);
+    login("social-mock-token", "social-mock-refresh-token", {
+      id: provider.toLowerCase(),
+      email: `${provider.toLowerCase()}-user@social.com`,
+    });
     setTimeout(() => onAuthSuccess(), 100);
   };
 

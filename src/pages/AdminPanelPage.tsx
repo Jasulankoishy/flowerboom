@@ -1,23 +1,73 @@
-import { useState } from "react";
-import { useAuthStore } from "../stores";
-import { useProducts } from "../hooks";
-import { motion } from "motion/react";
-import { Plus, Edit2, Trash2, LogOut, Package } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import type { Product } from "../types";
+import { motion } from "motion/react";
+import { ClipboardList, Edit2, Gift, LogOut, Package, Plus, Trash2 } from "lucide-react";
+import { ordersApi, type Order } from "../api/orders";
 import ImageUpload from "../components/ImageUpload";
+import { useProducts } from "../hooks";
+import { useAuthStore } from "../stores";
+import type { Product } from "../types";
+
+const STATUS_LABELS: Record<string, string> = {
+  pending: "Ожидает",
+  confirmed: "Подтверждён",
+  delivered: "Доставлен",
+  cancelled: "Отменён",
+};
+
+const STATUS_COLORS: Record<string, string> = {
+  pending: "border-yellow-500/40 bg-yellow-500/10 text-yellow-300",
+  confirmed: "border-blue-500/40 bg-blue-500/10 text-blue-300",
+  delivered: "border-green-500/40 bg-green-500/10 text-green-300",
+  cancelled: "border-red-500/40 bg-red-500/10 text-red-300",
+};
+
+const STATUS_OPTIONS = ["all", "pending", "confirmed", "delivered", "cancelled"];
 
 export default function AdminPanelPage() {
   const { logout } = useAuthStore();
   const { products, loading, createProduct, updateProduct, deleteProduct } = useProducts();
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<"products" | "orders">("products");
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [imageUrl, setImageUrl] = useState("");
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
+  const [ordersError, setOrdersError] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+
+  useEffect(() => {
+    if (activeTab === "orders") {
+      loadOrders(statusFilter);
+    }
+  }, [activeTab, statusFilter]);
 
   const handleLogout = () => {
     logout();
     navigate("/admin/login");
+  };
+
+  const loadOrders = async (status = statusFilter) => {
+    setOrdersLoading(true);
+    setOrdersError("");
+    try {
+      const data = await ordersApi.getAllOrders(status === "all" ? undefined : status);
+      setOrders(data);
+    } catch (err: any) {
+      setOrdersError(err.message || "Ошибка загрузки заказов");
+    } finally {
+      setOrdersLoading(false);
+    }
+  };
+
+  const handleStatusChange = async (id: string, status: string) => {
+    try {
+      const updated = await ordersApi.updateStatus(id, status);
+      setOrders((current) => current.map((order) => (order.id === id ? updated : order)));
+    } catch (err: any) {
+      setOrdersError(err.message || "Ошибка обновления статуса");
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -53,134 +103,282 @@ export default function AdminPanelPage() {
     }
   };
 
+  const formatDate = (value: string) => {
+    return new Date(value).toLocaleDateString("ru-RU", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
   return (
     <div className="min-h-screen bg-ink">
       <header className="bg-slate-800 border-b-2 border-slate-700/50">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="container mx-auto px-4 py-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-3">
             <Package className="w-8 h-8 text-sky" />
             <h1 className="text-2xl font-bold text-white-alt">Админ панель</h1>
           </div>
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-2 px-4 py-2 bg-red-500/10 border border-red-500/30 text-red-400 rounded hover:bg-red-500/20 transition-all"
-          >
-            <LogOut className="w-4 h-4" />
-            Выйти
-          </button>
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={() => setActiveTab("products")}
+              className={`flex items-center gap-2 rounded border px-4 py-2 font-bold transition-all ${
+                activeTab === "products"
+                  ? "border-sky bg-sky text-ink"
+                  : "border-slate-600 text-white-alt hover:border-sky"
+              }`}
+            >
+              <Package className="w-4 h-4" />
+              Товары
+            </button>
+            <button
+              onClick={() => setActiveTab("orders")}
+              className={`flex items-center gap-2 rounded border px-4 py-2 font-bold transition-all ${
+                activeTab === "orders"
+                  ? "border-sky bg-sky text-ink"
+                  : "border-slate-600 text-white-alt hover:border-sky"
+              }`}
+            >
+              <ClipboardList className="w-4 h-4" />
+              Заказы
+            </button>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 px-4 py-2 bg-red-500/10 border border-red-500/30 text-red-400 rounded hover:bg-red-500/20 transition-all"
+            >
+              <LogOut className="w-4 h-4" />
+              Выйти
+            </button>
+          </div>
         </div>
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <h2 className="text-xl font-bold text-white-alt">Товары ({products.length})</h2>
-          <button
-            onClick={() => {
-              setEditingProduct(null);
-              setImageUrl("");
-              setShowForm(true);
-            }}
-            className="flex items-center gap-2 px-4 py-2 bg-sky text-ink font-bold rounded hover:brightness-110 transition-all"
-          >
-            <Plus className="w-5 h-5" />
-            Добавить товар
-          </button>
-        </div>
-
-        {showForm && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-slate-800 border-2 border-slate-700/50 rounded-lg p-6 mb-8"
-          >
-            <h3 className="text-lg font-bold text-white-alt mb-4">
-              {editingProduct ? "Редактировать товар" : "Новый товар"}
-            </h3>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <input
-                name="title"
-                defaultValue={editingProduct?.title}
-                placeholder="Название"
-                className="w-full bg-slate-700 border border-slate-600 rounded px-4 py-2 text-white-alt focus:outline-none focus:border-sky"
-                required
-              />
-              <input
-                name="price"
-                defaultValue={editingProduct?.price}
-                placeholder="Цена"
-                className="w-full bg-slate-700 border border-slate-600 rounded px-4 py-2 text-white-alt focus:outline-none focus:border-sky"
-                required
-              />
-              <ImageUpload value={imageUrl} onChange={setImageUrl} />
-              <textarea
-                name="description"
-                defaultValue={editingProduct?.description}
-                placeholder="Описание"
-                rows={3}
-                className="w-full bg-slate-700 border border-slate-600 rounded px-4 py-2 text-white-alt focus:outline-none focus:border-sky"
-                required
-              />
-              <div className="flex gap-2">
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-sky text-ink font-bold rounded hover:brightness-110"
-                >
-                  {editingProduct ? "Сохранить" : "Создать"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowForm(false);
-                    setEditingProduct(null);
-                    setImageUrl("");
-                  }}
-                  className="px-4 py-2 bg-slate-700 text-white-alt rounded hover:bg-slate-600"
-                >
-                  Отмена
-                </button>
-              </div>
-            </form>
-          </motion.div>
-        )}
-
-        {loading ? (
-          <p className="text-slate-400 text-center">Загрузка...</p>
-        ) : (
-          <div className="grid gap-4">
-            {products.map((product) => (
-              <motion.div
-                key={product.id}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="bg-slate-800 border-2 border-slate-700/50 rounded-lg p-4 flex items-center gap-4"
+        {activeTab === "products" ? (
+          <>
+            <div className="flex justify-between items-center mb-8">
+              <h2 className="text-xl font-bold text-white-alt">Товары ({products.length})</h2>
+              <button
+                onClick={() => {
+                  setEditingProduct(null);
+                  setImageUrl("");
+                  setShowForm(true);
+                }}
+                className="flex items-center gap-2 px-4 py-2 bg-sky text-ink font-bold rounded hover:brightness-110 transition-all"
               >
-                <img
-                  src={product.image}
-                  alt={product.title}
-                  className="w-20 h-20 object-cover rounded"
-                />
-                <div className="flex-1">
-                  <h3 className="font-bold text-white-alt">{product.title}</h3>
-                  <p className="text-sky font-bold">{product.price}</p>
-                  <p className="text-sm text-slate-400 line-clamp-1">{product.description}</p>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleEdit(product)}
-                    className="p-2 bg-blue-500/10 border border-blue-500/30 text-blue-400 rounded hover:bg-blue-500/20"
-                  >
-                    <Edit2 className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(product.id)}
-                    className="p-2 bg-red-500/10 border border-red-500/30 text-red-400 rounded hover:bg-red-500/20"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
+                <Plus className="w-5 h-5" />
+                Добавить товар
+              </button>
+            </div>
+
+            {showForm && (
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-slate-800 border-2 border-slate-700/50 rounded-lg p-6 mb-8"
+              >
+                <h3 className="text-lg font-bold text-white-alt mb-4">
+                  {editingProduct ? "Редактировать товар" : "Новый товар"}
+                </h3>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <input
+                    name="title"
+                    defaultValue={editingProduct?.title}
+                    placeholder="Название"
+                    className="w-full bg-slate-700 border border-slate-600 rounded px-4 py-2 text-white-alt focus:outline-none focus:border-sky"
+                    required
+                  />
+                  <input
+                    name="price"
+                    defaultValue={editingProduct?.price}
+                    placeholder="Цена"
+                    className="w-full bg-slate-700 border border-slate-600 rounded px-4 py-2 text-white-alt focus:outline-none focus:border-sky"
+                    required
+                  />
+                  <ImageUpload value={imageUrl} onChange={setImageUrl} />
+                  <textarea
+                    name="description"
+                    defaultValue={editingProduct?.description}
+                    placeholder="Описание"
+                    rows={3}
+                    className="w-full bg-slate-700 border border-slate-600 rounded px-4 py-2 text-white-alt focus:outline-none focus:border-sky"
+                    required
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      type="submit"
+                      className="px-4 py-2 bg-sky text-ink font-bold rounded hover:brightness-110"
+                    >
+                      {editingProduct ? "Сохранить" : "Создать"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowForm(false);
+                        setEditingProduct(null);
+                        setImageUrl("");
+                      }}
+                      className="px-4 py-2 bg-slate-700 text-white-alt rounded hover:bg-slate-600"
+                    >
+                      Отмена
+                    </button>
+                  </div>
+                </form>
               </motion.div>
-            ))}
-          </div>
+            )}
+
+            {loading ? (
+              <p className="text-slate-400 text-center">Загрузка...</p>
+            ) : (
+              <div className="grid gap-4">
+                {products.map((product) => (
+                  <motion.div
+                    key={product.id}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="bg-slate-800 border-2 border-slate-700/50 rounded-lg p-4 flex items-center gap-4"
+                  >
+                    <img
+                      src={product.image}
+                      alt={product.title}
+                      className="w-20 h-20 object-cover rounded"
+                    />
+                    <div className="flex-1">
+                      <h3 className="font-bold text-white-alt">{product.title}</h3>
+                      <p className="text-sky font-bold">{product.price}</p>
+                      <p className="text-sm text-slate-400 line-clamp-1">{product.description}</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleEdit(product)}
+                        className="p-2 bg-blue-500/10 border border-blue-500/30 text-blue-400 rounded hover:bg-blue-500/20"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(product.id)}
+                        className="p-2 bg-red-500/10 border border-red-500/30 text-red-400 rounded hover:bg-red-500/20"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </>
+        ) : (
+          <section>
+            <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div>
+                <h2 className="text-xl font-bold text-white-alt">Заказы ({orders.length})</h2>
+                <p className="text-sm text-slate-400">Управление доставкой, статусами и открытками</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {STATUS_OPTIONS.map((status) => (
+                  <button
+                    key={status}
+                    onClick={() => setStatusFilter(status)}
+                    className={`rounded border px-3 py-2 text-sm font-bold transition-all ${
+                      statusFilter === status
+                        ? "border-sky bg-sky text-ink"
+                        : "border-slate-600 text-slate-300 hover:border-sky"
+                    }`}
+                  >
+                    {status === "all" ? "Все" : STATUS_LABELS[status]}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {ordersError && (
+              <div className="mb-4 rounded border border-red-500/50 bg-red-500/10 p-4 text-red-300">
+                {ordersError}
+              </div>
+            )}
+
+            {ordersLoading ? (
+              <p className="py-12 text-center text-slate-400">Загрузка заказов...</p>
+            ) : orders.length === 0 ? (
+              <p className="rounded border border-slate-700 bg-slate-800 p-8 text-center text-slate-400">
+                Заказов пока нет
+              </p>
+            ) : (
+              <div className="grid gap-5">
+                {orders.map((order) => (
+                  <motion.article
+                    key={order.id}
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="rounded-lg border-2 border-slate-700/60 bg-slate-800 p-5"
+                  >
+                    <div className="mb-5 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                      <div>
+                        <div className="flex flex-wrap items-center gap-3">
+                          <h3 className="font-mono text-sm text-slate-400">#{order.id.slice(0, 8)}</h3>
+                          <span className={`rounded-full border px-3 py-1 text-xs font-bold ${STATUS_COLORS[order.status]}`}>
+                            {STATUS_LABELS[order.status]}
+                          </span>
+                        </div>
+                        <p className="mt-2 text-white-alt">
+                          {order.user?.email || "Клиент"} · {formatDate(order.createdAt)}
+                        </p>
+                        <p className="mt-1 text-sm text-slate-400">
+                          {order.city}, {order.street}, д. {order.house}
+                          {order.apartment ? `, кв. ${order.apartment}` : ""} · {order.phone}
+                        </p>
+                        <p className="mt-1 text-sm text-slate-400">
+                          Доставка: {order.deliveryDate}, {order.deliveryTime}
+                        </p>
+                      </div>
+                      <div className="flex flex-col gap-2 md:items-end">
+                        <select
+                          value={order.status}
+                          onChange={(event) => handleStatusChange(order.id, event.target.value)}
+                          className="rounded border border-slate-600 bg-slate-700 px-3 py-2 text-white-alt outline-none focus:border-sky"
+                        >
+                          {STATUS_OPTIONS.filter((status) => status !== "all").map((status) => (
+                            <option key={status} value={status}>
+                              {STATUS_LABELS[status]}
+                            </option>
+                          ))}
+                        </select>
+                        <p className="text-2xl font-black text-sky">{order.totalPrice}₽</p>
+                      </div>
+                    </div>
+
+                    <div className="grid gap-3 md:grid-cols-2">
+                      {order.items.map((item) => (
+                        <div key={item.id} className="flex gap-3 rounded border border-slate-700 bg-slate-900/40 p-3">
+                          <img
+                            src={item.product.image}
+                            alt={item.product.title}
+                            className="h-16 w-16 rounded object-cover"
+                          />
+                          <div>
+                            <p className="font-bold text-white-alt">{item.product.title}</p>
+                            <p className="text-sm text-slate-400">
+                              {item.quantity} шт. × {item.price}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {order.giftCardEnabled && (
+                      <div className="mt-4 rounded border border-sky/30 bg-sky/10 p-4">
+                        <h4 className="mb-2 flex items-center gap-2 font-bold text-white-alt">
+                          <Gift className="h-4 w-4 text-sky" />
+                          Открытка
+                        </h4>
+                        <p className="text-sm text-slate-300">{order.giftMessage || "Без текста"}</p>
+                      </div>
+                    )}
+                  </motion.article>
+                ))}
+              </div>
+            )}
+          </section>
         )}
       </main>
     </div>

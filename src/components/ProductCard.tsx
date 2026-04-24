@@ -1,5 +1,6 @@
 import { motion } from "motion/react";
-import { useThemeStore } from "../stores";
+import { ShoppingBag, Zap } from "lucide-react";
+import { useCartStore, useThemeStore } from "../stores";
 import type { Product } from "../types";
 
 interface ProductCardProps {
@@ -11,6 +12,7 @@ interface ProductCardProps {
 
 export default function ProductCard({ product, delay, onQuickOrder, onShowReviews }: ProductCardProps) {
   const { isDark } = useThemeStore();
+  const addItem = useCartStore((state) => state.addItem);
 
   return (
     <motion.div
@@ -60,19 +62,33 @@ export default function ProductCard({ product, delay, onQuickOrder, onShowReview
       </motion.div>
 
       <div className="mt-6 w-full space-y-4">
-        <h3 className="text-xl font-bold text-white-alt uppercase tracking-tight">{product.title}</h3>
-        <div className="grid grid-cols-1 gap-3">
+        <div className="flex items-start justify-between gap-3">
+          <h3 className="text-xl font-bold text-white-alt uppercase tracking-tight">{product.title}</h3>
+          <div className="shrink-0 rounded border border-sky/30 bg-sky/10 px-3 py-2 text-sm font-black text-sky">
+            {product.price}
+          </div>
+        </div>
+        <p className="line-clamp-2 min-h-10 text-sm leading-relaxed text-slate-400">{product.description}</p>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <button
+            onClick={() => addItem(product)}
+            className="flex items-center justify-center gap-2 rounded border border-sky/40 py-4 text-xs font-bold uppercase tracking-widest text-sky transition-all hover:bg-sky hover:text-ink"
+          >
+            <ShoppingBag className="h-4 w-4" />
+            В корзину
+          </button>
           <button
             onClick={() => onQuickOrder(product)}
-            className="text-xs uppercase font-bold tracking-widest text-ink bg-sky py-4 rounded hover:brightness-110 active:scale-[0.98] transition-all"
+            className="flex items-center justify-center gap-2 rounded bg-sky py-4 text-xs font-bold uppercase tracking-widest text-ink transition-all hover:brightness-110 active:scale-[0.98]"
           >
+            <Zap className="h-4 w-4" />
             <motion.span
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
               className="block"
             >
-              Quick Order
+              Быстрый заказ
             </motion.span>
           </button>
         </div>

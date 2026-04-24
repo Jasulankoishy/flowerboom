@@ -19,6 +19,8 @@ export interface Review {
 export interface CartItem {
   productId: string;
   title: string;
+  price: string;
+  image: string;
   quantity: number;
 }
 
@@ -53,6 +55,8 @@ export interface Order {
   deliveryTime: string;
   status: "pending" | "confirmed" | "delivered" | "cancelled";
   totalPrice: string;
+  giftCardEnabled: boolean;
+  giftMessage?: string;
   items: OrderItem[];
   createdAt: string;
   updatedAt: string;
@@ -78,4 +82,6 @@ export interface CreateOrderDto {
   deliveryDate: string;
   deliveryTime: string;
   totalPrice?: string;
+  giftCardEnabled?: boolean;
+  giftMessage?: string;
 }

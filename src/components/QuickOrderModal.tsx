@@ -15,7 +15,7 @@ const DELIVERY_TIMES = ["9:00–12:00", "12:00–15:00", "15:00–18:00", "18:00
 
 export default function QuickOrderModal({ product, onClose }: QuickOrderModalProps) {
   const navigate = useNavigate();
-  const { isAuthenticated, userToken } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -34,8 +34,8 @@ export default function QuickOrderModal({ product, onClose }: QuickOrderModalPro
 
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
-  // Calculate total price
-  const totalPrice = (parseFloat(product.price) * quantity).toFixed(2);
+  const priceValue = Number.parseFloat(product.price.replace(/\s/g, "").replace(",", ".").replace(/[^\d.]/g, ""));
+  const totalPrice = ((Number.isFinite(priceValue) ? priceValue : 0) * quantity).toFixed(2);
 
   // Format phone number on input
   const handlePhoneInput = (value: string) => {
@@ -129,7 +129,6 @@ export default function QuickOrderModal({ product, onClose }: QuickOrderModalPro
           {
             productId: product.id,
             quantity: quantity,
-            price: product.price,
           },
         ],
         city: formData.city.trim(),
@@ -235,7 +234,7 @@ export default function QuickOrderModal({ product, onClose }: QuickOrderModalPro
           />
           <div className="flex-1">
             <h3 className="text-lg font-bold text-white-alt">{product.title}</h3>
-            <p className="text-sky font-bold mb-4">{product.price}₽</p>
+            <p className="text-sky font-bold mb-4">{product.price}</p>
 
             {/* Quantity control */}
             <div className="flex items-center gap-3">

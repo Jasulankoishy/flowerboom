@@ -1,18 +1,23 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import type { Product } from "../types";
 
 interface CartItem {
   productId: string;
   title: string;
+  price: string;
+  image: string;
   quantity: number;
 }
 
 interface CartState {
   items: CartItem[];
-  addItem: (productId: string, title: string) => void;
-  removeItem: (index: number) => void;
+  addItem: (product: Product) => void;
+  updateQuantity: (productId: string, quantity: number) => void;
+  removeItem: (productId: string) => void;
   clearCart: () => void;
   getTotalItems: () => number;
+  getTotalPrice: () => number;
 }
 
 export const useCartStore = create<CartState>()(
@@ -20,23 +25,45 @@ export const useCartStore = create<CartState>()(
     (set, get) => ({
       items: [],
 
-      addItem: (productId: string, title: string) => {
+      addItem: (product: Product) => {
         set((state) => {
-          const existingItem = state.items.find((item) => item.productId === productId);
+          const existingItem = state.items.find((item) => item.productId === product.id);
           if (existingItem) {
             return {
               items: state.items.map((item) =>
-                item.productId === productId ? { ...item, quantity: item.quantity + 1 } : item
+                item.productId === product.id
+                  ? { ...item, price: product.price, image: product.image, quantity: item.quantity + 1 }
+                  : item
               ),
             };
           }
-          return { items: [...state.items, { productId, title, quantity: 1 }] };
+          return {
+            items: [
+              ...state.items,
+              {
+                productId: product.id,
+                title: product.title,
+                price: product.price,
+                image: product.image,
+                quantity: 1,
+              },
+            ],
+          };
         });
       },
 
-      removeItem: (index: number) => {
+      updateQuantity: (productId: string, quantity: number) => {
+        const safeQuantity = Math.min(99, Math.max(1, quantity));
         set((state) => ({
-          items: state.items.filter((_, i) => i !== index),
+          items: state.items.map((item) =>
+            item.productId === productId ? { ...item, quantity: safeQuantity } : item
+          ),
+        }));
+      },
+
+      removeItem: (productId: string) => {
+        set((state) => ({
+          items: state.items.filter((item) => item.productId !== productId),
         }));
       },
 
@@ -46,6 +73,13 @@ export const useCartStore = create<CartState>()(
 
       getTotalItems: () => {
         return get().items.reduce((total, item) => total + item.quantity, 0);
+      },
+
+      getTotalPrice: () => {
+        return get().items.reduce((total, item) => {
+          const price = Number.parseFloat(String(item.price || "0").replace(/\s/g, "").replace(",", ".").replace(/[^\d.]/g, ""));
+          return total + (Number.isFinite(price) ? price : 0) * item.quantity;
+        }, 0);
       },
     }),
     {
