@@ -1,4 +1,5 @@
 import prisma from '../prisma/client.js';
+import { normalizeOccasions } from '../constants/occasions.js';
 import { uploadProductImage } from '../utils/supabaseStorage.js';
 
 // Get all products
@@ -37,7 +38,7 @@ export const getProductById = async (req, res) => {
 
 // Create product
 export const createProduct = async (req, res) => {
-  const { title, price, description, imageUrl, image: bodyImage } = req.body;
+  const { title, price, description, imageUrl, image: bodyImage, occasions: rawOccasions } = req.body;
 
   try {
     // Get next index
@@ -49,6 +50,7 @@ export const createProduct = async (req, res) => {
       : '01';
 
     const image = imageUrl || bodyImage || '';
+    const occasions = normalizeOccasions(rawOccasions);
 
     const product = await prisma.product.create({
       data: {
@@ -56,7 +58,8 @@ export const createProduct = async (req, res) => {
         title,
         price,
         description,
-        image
+        image,
+        occasions
       }
     });
 
@@ -70,7 +73,7 @@ export const createProduct = async (req, res) => {
 // Update product
 export const updateProduct = async (req, res) => {
   const { id } = req.params;
-  const { title, price, description, imageUrl, image: bodyImage } = req.body;
+  const { title, price, description, imageUrl, image: bodyImage, occasions: rawOccasions } = req.body;
 
   try {
     const product = await prisma.product.findUnique({ where: { id } });
@@ -80,6 +83,9 @@ export const updateProduct = async (req, res) => {
     }
 
     const image = imageUrl || bodyImage || product.image;
+    const occasions = rawOccasions === undefined
+      ? product.occasions
+      : normalizeOccasions(rawOccasions);
 
     const updated = await prisma.product.update({
       where: { id },
@@ -87,7 +93,8 @@ export const updateProduct = async (req, res) => {
         title: title || product.title,
         price: price || product.price,
         description: description || product.description,
-        image
+        image,
+        occasions
       }
     });
 

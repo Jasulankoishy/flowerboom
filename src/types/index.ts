@@ -5,6 +5,7 @@ export interface Product {
   image: string;
   price: string; // Строка в API ("4500"), не number!
   description: string;
+  occasions: string[];
 }
 
 export interface Review {

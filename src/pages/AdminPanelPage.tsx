@@ -4,6 +4,7 @@ import { motion } from "motion/react";
 import { Banknote, ClipboardList, Edit2, Gift, LogOut, Package, Plus, ShoppingBag, Timer, Trash2 } from "lucide-react";
 import { ordersApi, type AdminStats, type Order } from "../api/orders";
 import ImageUpload from "../components/ImageUpload";
+import { OCCASIONS, getOccasionLabel } from "../constants/occasions";
 import { useProducts } from "../hooks";
 import { useAuthStore } from "../stores";
 import type { Product } from "../types";
@@ -32,6 +33,7 @@ export default function AdminPanelPage() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [imageUrl, setImageUrl] = useState("");
+  const [selectedOccasions, setSelectedOccasions] = useState<string[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [ordersError, setOrdersError] = useState("");
@@ -95,6 +97,7 @@ export default function AdminPanelPage() {
       price: formData.get("price") as string,
       image: imageUrl,
       description: formData.get("description") as string,
+      occasions: selectedOccasions,
     };
 
     if (editingProduct) {
@@ -106,12 +109,18 @@ export default function AdminPanelPage() {
     setShowForm(false);
     setEditingProduct(null);
     setImageUrl("");
+    setSelectedOccasions([]);
   };
 
   const handleEdit = (product: Product) => {
     setEditingProduct(product);
     setImageUrl(product.image);
+    setSelectedOccasions(product.occasions || []);
     setShowForm(true);
+  };
+
+  const handleOccasionSelect = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedOccasions(Array.from(event.target.selectedOptions, (option) => option.value));
   };
 
   const handleDelete = async (id: string) => {
@@ -217,6 +226,7 @@ export default function AdminPanelPage() {
                 onClick={() => {
                   setEditingProduct(null);
                   setImageUrl("");
+                  setSelectedOccasions([]);
                   setShowForm(true);
                 }}
                 className="flex items-center gap-2 px-4 py-2 bg-sky text-ink font-bold rounded hover:brightness-110 transition-all"
@@ -251,6 +261,26 @@ export default function AdminPanelPage() {
                     required
                   />
                   <ImageUpload value={imageUrl} onChange={setImageUrl} />
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-slate-300">
+                      Поводы
+                    </label>
+                    <select
+                      multiple
+                      value={selectedOccasions}
+                      onChange={handleOccasionSelect}
+                      className="min-h-40 w-full rounded border border-slate-600 bg-slate-700 px-4 py-3 text-white-alt outline-none focus:border-sky"
+                    >
+                      {OCCASIONS.map((occasion) => (
+                        <option key={occasion.slug} value={occasion.slug}>
+                          {occasion.label}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="mt-2 text-xs text-slate-500">
+                      Можно выбрать несколько поводов через Ctrl или Shift.
+                    </p>
+                  </div>
                   <textarea
                     name="description"
                     defaultValue={editingProduct?.description}
@@ -272,6 +302,7 @@ export default function AdminPanelPage() {
                         setShowForm(false);
                         setEditingProduct(null);
                         setImageUrl("");
+                        setSelectedOccasions([]);
                       }}
                       className="px-4 py-2 bg-slate-700 text-white-alt rounded hover:bg-slate-600"
                     >
@@ -302,6 +333,18 @@ export default function AdminPanelPage() {
                       <h3 className="font-bold text-white-alt">{product.title}</h3>
                       <p className="text-sky font-bold">{product.price}</p>
                       <p className="text-sm text-slate-400 line-clamp-1">{product.description}</p>
+                      {product.occasions?.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {product.occasions.map((occasion) => (
+                            <span
+                              key={occasion}
+                              className="rounded-full border border-sky/30 bg-sky/10 px-2 py-1 text-xs font-bold text-sky"
+                            >
+                              {getOccasionLabel(occasion)}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                     <div className="flex gap-2">
                       <button

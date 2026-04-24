@@ -17,6 +17,7 @@ export default function HomePage() {
   const [showSearch, setShowSearch] = useState(false);
   const [showCart, setShowCart] = useState(false);
   const [quickOrderProduct, setQuickOrderProduct] = useState<Product | null>(null);
+  const [selectedOccasion, setSelectedOccasion] = useState("all");
 
   const handleSearchClick = () => setShowSearch(true);
   const handleCartClick = () => setShowCart(true);
@@ -36,6 +37,8 @@ export default function HomePage() {
         <ProductGrid
           onQuickOrder={handleQuickOrder}
           onShowReviews={handleShowReviews}
+          selectedOccasion={selectedOccasion}
+          onOccasionChange={setSelectedOccasion}
         />
       </main>
       {showSearch && <SearchModal isOpen={showSearch} onClose={() => setShowSearch(false)} />}

@@ -38,6 +38,7 @@ model Product {
   image       String
   price       String // Храним как строку для совместимости с фронтом
   description String
+  occasions   String[]    @default([])
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
   reviews     Review[]
