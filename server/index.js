@@ -3,6 +3,7 @@ import app from './app.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { ensureAdmin } from './utils/ensureAdmin.js';
 
 // Load environment variables
 dotenv.config({ path: path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '.env') });
@@ -19,6 +20,8 @@ if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
+await ensureAdmin();
+
 app.listen(PORT, () => {
   const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
 
@@ -28,5 +31,4 @@ app.listen(PORT, () => {
   console.log(`\n👤 Frontend: ${frontendUrl}`);
   console.log(`🔐 Admin Panel: ${frontendUrl}/admin/login`);
   console.log(`   Username: ${process.env.ADMIN_USERNAME || 'admin'}`);
-  console.log(`   Password: ${process.env.ADMIN_PASSWORD || 'admin123'}`);
 });
