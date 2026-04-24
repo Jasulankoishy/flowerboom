@@ -8,6 +8,19 @@ export interface Product {
   occasions: string[];
 }
 
+export interface ShowcaseSlide {
+  id: string;
+  title: string;
+  description: string;
+  image: string;
+  productId: string;
+  product: Product;
+  sortOrder: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Review {
   id: string;
   productId: string;

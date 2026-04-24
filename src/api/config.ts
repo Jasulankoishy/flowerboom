@@ -25,6 +25,11 @@ export const API_ENDPOINTS = {
   adminStats: "/api/admin/stats",
   updateOrderStatus: (id: string) => `/api/admin/orders/${id}/status`,
 
+  // Showcase
+  showcase: "/api/showcase",
+  adminShowcase: "/api/admin/showcase",
+  adminShowcaseSlide: (id: string) => `/api/admin/showcase/${id}`,
+
   // Upload
   upload: "/api/upload",
 } as const;

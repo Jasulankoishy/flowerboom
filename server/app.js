@@ -20,6 +20,7 @@ import productsRoutes from './routes/products.js';
 import reviewsRoutes from './routes/reviews.js';
 import uploadRoutes from './routes/upload.js';
 import ordersRoutes from './routes/orders.js';
+import showcaseRoutes from './routes/showcase.js';
 
 const app = express();
 
@@ -91,6 +92,7 @@ app.use('/api/products', productsRoutes);
 app.use('/api', reviewsRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api', ordersRoutes);
+app.use('/api', showcaseRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

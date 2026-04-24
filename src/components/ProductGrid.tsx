@@ -33,7 +33,7 @@ export default function ProductGrid({ onQuickOrder, onShowReviews, selectedOccas
   }
 
   return (
-    <section className="mb-20">
+    <section id="catalog" className="mb-20 scroll-mt-8">
       <div className="mb-8">
         <div className="mb-4 flex items-end justify-between gap-4">
           <div>

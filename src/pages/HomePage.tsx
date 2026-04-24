@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
-import HeroSection from "../components/HeroSection";
+import ProHeroShowcase from "../components/ProHeroShowcase";
 import ProductGrid from "../components/ProductGrid";
 import Footer from "../components/Footer";
 import SearchModal from "../components/SearchModal";
@@ -33,7 +33,7 @@ export default function HomePage() {
         onProfileClick={handleProfileClick}
       />
       <main className="flex-1">
-        <HeroSection />
+        <ProHeroShowcase onQuickOrder={handleQuickOrder} />
         <ProductGrid
           onQuickOrder={handleQuickOrder}
           onShowReviews={handleShowReviews}

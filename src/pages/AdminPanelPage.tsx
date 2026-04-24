@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
-import { Banknote, ClipboardList, Edit2, Gift, LogOut, Package, Plus, ShoppingBag, Timer, Trash2 } from "lucide-react";
+import { Banknote, ClipboardList, Edit2, Gift, LogOut, Package, Plus, ShoppingBag, Sparkles, Timer, Trash2 } from "lucide-react";
 import { ordersApi, type AdminStats, type Order } from "../api/orders";
+import AdminShowcasePanel from "../components/AdminShowcasePanel";
 import ImageUpload from "../components/ImageUpload";
 import { OCCASIONS, getOccasionLabel } from "../constants/occasions";
 import { useProducts } from "../hooks";
@@ -29,7 +30,7 @@ export default function AdminPanelPage() {
   const { logout } = useAuthStore();
   const { products, loading, createProduct, updateProduct, deleteProduct } = useProducts();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<"products" | "orders">("products");
+  const [activeTab, setActiveTab] = useState<"products" | "orders" | "showcase">("products");
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [imageUrl, setImageUrl] = useState("");
@@ -167,6 +168,17 @@ export default function AdminPanelPage() {
             >
               <ClipboardList className="w-4 h-4" />
               Заказы
+            </button>
+            <button
+              onClick={() => setActiveTab("showcase")}
+              className={`flex items-center gap-2 rounded border px-4 py-2 font-bold transition-all ${
+                activeTab === "showcase"
+                  ? "border-sky bg-sky text-ink"
+                  : "border-slate-600 text-white-alt hover:border-sky"
+              }`}
+            >
+              <Sparkles className="w-4 h-4" />
+              Витрина
             </button>
             <button
               onClick={handleLogout}
@@ -365,7 +377,7 @@ export default function AdminPanelPage() {
               </div>
             )}
           </>
-        ) : (
+        ) : activeTab === "orders" ? (
           <section>
             <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div>
@@ -477,6 +489,8 @@ export default function AdminPanelPage() {
               </div>
             )}
           </section>
+        ) : (
+          <AdminShowcasePanel products={products} />
         )}
       </main>
     </div>
