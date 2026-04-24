@@ -4,6 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { ensureAdmin } from './utils/ensureAdmin.js';
+import { ensureStorageBucket } from './utils/supabaseStorage.js';
 
 // Load environment variables
 dotenv.config({ path: path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '.env') });
@@ -21,6 +22,7 @@ if (!fs.existsSync(uploadsDir)) {
 }
 
 await ensureAdmin();
+await ensureStorageBucket();
 
 app.listen(PORT, () => {
   const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';

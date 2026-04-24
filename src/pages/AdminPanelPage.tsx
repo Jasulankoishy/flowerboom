@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
-import { ClipboardList, Edit2, Gift, LogOut, Package, Plus, Trash2 } from "lucide-react";
-import { ordersApi, type Order } from "../api/orders";
+import { Banknote, ClipboardList, Edit2, Gift, LogOut, Package, Plus, ShoppingBag, Timer, Trash2 } from "lucide-react";
+import { ordersApi, type AdminStats, type Order } from "../api/orders";
 import ImageUpload from "../components/ImageUpload";
 import { useProducts } from "../hooks";
 import { useAuthStore } from "../stores";
@@ -36,6 +36,12 @@ export default function AdminPanelPage() {
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [ordersError, setOrdersError] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [stats, setStats] = useState<AdminStats | null>(null);
+  const [statsError, setStatsError] = useState("");
+
+  useEffect(() => {
+    loadStats();
+  }, []);
 
   useEffect(() => {
     if (activeTab === "orders") {
@@ -61,10 +67,21 @@ export default function AdminPanelPage() {
     }
   };
 
+  const loadStats = async () => {
+    setStatsError("");
+    try {
+      const data = await ordersApi.getAdminStats();
+      setStats(data);
+    } catch (err: any) {
+      setStatsError(err.message || "Ошибка загрузки статистики");
+    }
+  };
+
   const handleStatusChange = async (id: string, status: string) => {
     try {
       const updated = await ordersApi.updateStatus(id, status);
       setOrders((current) => current.map((order) => (order.id === id ? updated : order)));
+      await loadStats();
     } catch (err: any) {
       setOrdersError(err.message || "Ошибка обновления статуса");
     }
@@ -154,6 +171,44 @@ export default function AdminPanelPage() {
       </header>
 
       <main className="container mx-auto px-4 py-8">
+        <section className="mb-8">
+          {statsError && (
+            <div className="mb-4 rounded border border-red-500/50 bg-red-500/10 p-3 text-sm text-red-300">
+              {statsError}
+            </div>
+          )}
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="rounded-lg border border-slate-700 bg-slate-800 p-5">
+              <div className="mb-4 flex h-11 w-11 items-center justify-center rounded bg-sky/10 text-sky">
+                <Package className="h-5 w-5" />
+              </div>
+              <p className="text-sm text-slate-400">Товаров</p>
+              <p className="mt-1 text-3xl font-black text-white-alt">{stats?.productsCount ?? products.length}</p>
+            </div>
+            <div className="rounded-lg border border-slate-700 bg-slate-800 p-5">
+              <div className="mb-4 flex h-11 w-11 items-center justify-center rounded bg-blue-500/10 text-blue-300">
+                <ShoppingBag className="h-5 w-5" />
+              </div>
+              <p className="text-sm text-slate-400">Заказов сегодня</p>
+              <p className="mt-1 text-3xl font-black text-white-alt">{stats?.ordersToday ?? 0}</p>
+            </div>
+            <div className="rounded-lg border border-slate-700 bg-slate-800 p-5">
+              <div className="mb-4 flex h-11 w-11 items-center justify-center rounded bg-yellow-500/10 text-yellow-300">
+                <Timer className="h-5 w-5" />
+              </div>
+              <p className="text-sm text-slate-400">Ожидают</p>
+              <p className="mt-1 text-3xl font-black text-white-alt">{stats?.pendingOrders ?? 0}</p>
+            </div>
+            <div className="rounded-lg border border-slate-700 bg-slate-800 p-5">
+              <div className="mb-4 flex h-11 w-11 items-center justify-center rounded bg-green-500/10 text-green-300">
+                <Banknote className="h-5 w-5" />
+              </div>
+              <p className="text-sm text-slate-400">Сумма заказов</p>
+              <p className="mt-1 text-3xl font-black text-white-alt">{Number(stats?.totalRevenue ?? 0).toFixed(0)}₽</p>
+            </div>
+          </div>
+        </section>
+
         {activeTab === "products" ? (
           <>
             <div className="flex justify-between items-center mb-8">

@@ -220,6 +220,55 @@ export const getAllOrders = async (req, res) => {
   }
 };
 
+// Get admin dashboard stats
+export const getAdminStats = async (req, res) => {
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const [productsCount, ordersToday, pendingOrders, revenueOrders] = await Promise.all([
+      prisma.product.count(),
+      prisma.order.count({
+        where: {
+          createdAt: {
+            gte: today,
+            lt: tomorrow
+          }
+        }
+      }),
+      prisma.order.count({
+        where: { status: 'pending' }
+      }),
+      prisma.order.findMany({
+        where: {
+          status: {
+            in: ['pending', 'confirmed', 'delivered']
+          }
+        },
+        select: { totalPrice: true }
+      })
+    ]);
+
+    const totalRevenue = revenueOrders.reduce((sum, order) => {
+      const value = Number.parseFloat(String(order.totalPrice || '0').replace(/\s/g, '').replace(',', '.').replace(/[^\d.]/g, ''));
+      return sum + (Number.isFinite(value) ? value : 0);
+    }, 0);
+
+    res.json({
+      productsCount,
+      ordersToday,
+      pendingOrders,
+      totalRevenue: totalRevenue.toFixed(2)
+    });
+  } catch (error) {
+    console.error('Get admin stats error:', error);
+    res.status(500).json({ error: 'Failed to fetch admin stats' });
+  }
+};
+
 // Update order status (admin only)
 export const updateOrderStatus = async (req, res) => {
   const { id } = req.params;

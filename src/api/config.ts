@@ -22,6 +22,7 @@ export const API_ENDPOINTS = {
   orders: "/api/orders",
   order: (id: string) => `/api/orders/${id}`,
   adminOrders: "/api/admin/orders",
+  adminStats: "/api/admin/stats",
   updateOrderStatus: (id: string) => `/api/admin/orders/${id}/status`,
 
   // Upload

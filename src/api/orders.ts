@@ -55,6 +55,13 @@ export interface Order {
   };
 }
 
+export interface AdminStats {
+  productsCount: number;
+  ordersToday: number;
+  pendingOrders: number;
+  totalRevenue: string;
+}
+
 export const ordersApi = {
   async create(data: CreateOrderData): Promise<Order> {
     return apiRequest<Order>(`${API_URL}${API_ENDPOINTS.orders}`, {
@@ -83,5 +90,9 @@ export const ordersApi = {
       method: "PATCH",
       body: JSON.stringify({ status }),
     });
+  },
+
+  async getAdminStats(): Promise<AdminStats> {
+    return apiRequest<AdminStats>(`${API_URL}${API_ENDPOINTS.adminStats}`);
   },
 };

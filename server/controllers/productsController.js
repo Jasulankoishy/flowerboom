@@ -1,4 +1,5 @@
 import prisma from '../prisma/client.js';
+import { uploadProductImage } from '../utils/supabaseStorage.js';
 
 // Get all products
 export const getAllProducts = async (req, res) => {
@@ -110,24 +111,22 @@ export const deleteProduct = async (req, res) => {
   }
 };
 
-// Upload image and convert to base64
+// Upload image to Supabase Storage and return a public URL
 export const uploadImage = async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ message: 'No file uploaded' });
   }
 
   try {
-    // Convert buffer to base64
-    const base64 = req.file.buffer.toString('base64');
-    const mimeType = req.file.mimetype;
-    const dataUrl = `data:${mimeType};base64,${base64}`;
+    const uploaded = await uploadProductImage(req.file);
 
     res.json({
-      url: dataUrl,
+      url: uploaded.url,
+      path: uploaded.path,
       success: true
     });
   } catch (error) {
     console.error('Upload error:', error);
-    res.status(500).json({ message: 'Failed to upload image' });
+    res.status(error.status || 500).json({ message: error.message || 'Failed to upload image' });
   }
 };
