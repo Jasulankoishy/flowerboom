@@ -41,7 +41,7 @@ export const useProducts = () => {
       const formData = new FormData();
       formData.append("title", data.title);
       formData.append("price", data.price);
-      formData.append("image", data.image);
+      formData.append("imageUrl", data.image);
       formData.append("description", data.description);
       await productsApi.create(formData);
       await refetch();
@@ -58,7 +58,7 @@ export const useProducts = () => {
       const formData = new FormData();
       formData.append("title", data.title);
       formData.append("price", data.price);
-      formData.append("image", data.image);
+      formData.append("imageUrl", data.image);
       formData.append("description", data.description);
       await productsApi.update(id, formData);
       await refetch();

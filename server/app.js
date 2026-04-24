@@ -106,11 +106,14 @@ app.use((req, res) => {
 app.use((err, req, res, next) => {
   // Multer file size error
   if (err.code === 'LIMIT_FILE_SIZE') {
-    return res.status(400).json({ error: 'Файл слишком большой. Максимум 5MB' });
+    return res.status(400).json({ error: 'Файл слишком большой. Максимум 2MB' });
   }
 
   // Multer file type error
-  if (err.message === 'Разрешены только изображения: JPG, PNG, WEBP') {
+  if (
+    err.message === 'Разрешены только изображения: JPG, PNG, WEBP' ||
+    err.message === 'Только JPG, PNG, WEBP'
+  ) {
     return res.status(400).json({ error: err.message });
   }
 

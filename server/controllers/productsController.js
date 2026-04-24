@@ -36,7 +36,7 @@ export const getProductById = async (req, res) => {
 
 // Create product
 export const createProduct = async (req, res) => {
-  const { title, price, description, imageUrl } = req.body;
+  const { title, price, description, imageUrl, image: bodyImage } = req.body;
 
   try {
     // Get next index
@@ -47,8 +47,7 @@ export const createProduct = async (req, res) => {
       ? String(parseInt(lastProduct.index) + 1).padStart(2, '0')
       : '01';
 
-    // Use imageUrl from request (Cloudinary URL)
-    const image = imageUrl || '';
+    const image = imageUrl || bodyImage || '';
 
     const product = await prisma.product.create({
       data: {
@@ -70,7 +69,7 @@ export const createProduct = async (req, res) => {
 // Update product
 export const updateProduct = async (req, res) => {
   const { id } = req.params;
-  const { title, price, description, imageUrl } = req.body;
+  const { title, price, description, imageUrl, image: bodyImage } = req.body;
 
   try {
     const product = await prisma.product.findUnique({ where: { id } });
@@ -79,8 +78,7 @@ export const updateProduct = async (req, res) => {
       return res.status(404).json({ message: 'Product not found' });
     }
 
-    // Use imageUrl from request (Cloudinary URL)
-    const image = imageUrl || product.image;
+    const image = imageUrl || bodyImage || product.image;
 
     const updated = await prisma.product.update({
       where: { id },

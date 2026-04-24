@@ -8,7 +8,7 @@ import type { Product } from "../types";
 import ImageUpload from "../components/ImageUpload";
 
 export default function AdminPanelPage() {
-  const { logout, userToken } = useAuthStore();
+  const { logout } = useAuthStore();
   const { products, loading, createProduct, updateProduct, deleteProduct } = useProducts();
   const navigate = useNavigate();
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -111,11 +111,7 @@ export default function AdminPanelPage() {
                 className="w-full bg-slate-700 border border-slate-600 rounded px-4 py-2 text-white-alt focus:outline-none focus:border-sky"
                 required
               />
-              <ImageUpload
-                currentImage={imageUrl}
-                onUpload={setImageUrl}
-                adminToken={userToken || ""}
-              />
+              <ImageUpload value={imageUrl} onChange={setImageUrl} />
               <textarea
                 name="description"
                 defaultValue={editingProduct?.description}
