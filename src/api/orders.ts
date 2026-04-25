@@ -31,7 +31,7 @@ export interface Order {
   phone: string;
   deliveryDate: string;
   deliveryTime: string;
-  status: "pending" | "confirmed" | "delivered" | "cancelled";
+  status: "pending" | "accepted" | "confirmed" | "preparing" | "delivering" | "delivered" | "cancelled";
   totalPrice: string;
   giftCardEnabled: boolean;
   giftMessage?: string;
@@ -52,6 +52,8 @@ export interface Order {
   user?: {
     id: string;
     email: string;
+    name?: string;
+    avatar?: string;
   };
 }
 

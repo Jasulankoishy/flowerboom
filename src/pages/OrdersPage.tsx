@@ -6,17 +6,35 @@ import { ordersApi, type Order } from "../api/orders";
 import { Package, MapPin, Phone, Calendar, Clock, Gift } from "lucide-react";
 
 const STATUS_LABELS: Record<string, string> = {
-  pending: "Ожидает",
-  confirmed: "Подтверждён",
+  pending: "Новый заказ",
+  accepted: "Принят",
+  confirmed: "Принят",
+  preparing: "Собираем",
+  delivering: "В доставке",
   delivered: "Доставлен",
   cancelled: "Отменён",
 };
 
 const STATUS_COLORS: Record<string, string> = {
   pending: "bg-yellow-500/20 text-yellow-400 border-yellow-500/50",
+  accepted: "bg-blue-500/20 text-blue-400 border-blue-500/50",
   confirmed: "bg-blue-500/20 text-blue-400 border-blue-500/50",
+  preparing: "bg-purple-500/20 text-purple-400 border-purple-500/50",
+  delivering: "bg-orange-500/20 text-orange-400 border-orange-500/50",
   delivered: "bg-green-500/20 text-green-400 border-green-500/50",
   cancelled: "bg-red-500/20 text-red-400 border-red-500/50",
+};
+
+const ORDER_STEPS = [
+  { status: "accepted", label: "Принят" },
+  { status: "preparing", label: "Собираем" },
+  { status: "delivering", label: "В доставке" },
+  { status: "delivered", label: "Доставлен" },
+];
+
+const getStepIndex = (status: string) => {
+  if (status === "pending" || status === "confirmed") return 0;
+  return Math.max(0, ORDER_STEPS.findIndex((step) => step.status === status));
 };
 
 export default function OrdersPage() {
@@ -142,12 +160,32 @@ export default function OrdersPage() {
                 </div>
                 <div
                   className={`px-4 py-2 rounded-full border font-bold text-sm ${
-                    STATUS_COLORS[order.status]
+                    STATUS_COLORS[order.status] || STATUS_COLORS.pending
                   }`}
                 >
-                  {STATUS_LABELS[order.status]}
+                  {STATUS_LABELS[order.status] || order.status}
                 </div>
               </div>
+
+              {order.status !== "cancelled" && (
+                <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  {ORDER_STEPS.map((step, stepIndex) => {
+                    const active = stepIndex <= getStepIndex(order.status);
+                    return (
+                      <div
+                        key={step.status}
+                        className={`rounded-lg border p-3 text-center text-xs font-bold uppercase tracking-wider ${
+                          active
+                            ? "border-sky bg-sky/10 text-sky"
+                            : "border-slate-700 bg-slate-900/40 text-slate-500"
+                        }`}
+                      >
+                        {step.label}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
 
               {/* Items */}
               <div className="mb-6">

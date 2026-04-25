@@ -6,6 +6,9 @@ const parsePrice = (value) => {
   return Number.isFinite(price) ? price : 0;
 };
 
+const ACTIVE_REVENUE_STATUSES = ['pending', 'accepted', 'confirmed', 'preparing', 'delivering', 'delivered'];
+const VALID_ORDER_STATUSES = ['pending', 'accepted', 'confirmed', 'preparing', 'delivering', 'delivered', 'cancelled'];
+
 // Create order
 export const createOrder = async (req, res) => {
   const {
@@ -166,7 +169,9 @@ export const getOrder = async (req, res) => {
         user: {
           select: {
             id: true,
-            email: true
+            email: true,
+            name: true,
+            avatar: true
           }
         }
       }
@@ -206,7 +211,9 @@ export const getAllOrders = async (req, res) => {
         user: {
           select: {
             id: true,
-            email: true
+            email: true,
+            name: true,
+            avatar: true
           }
         }
       },
@@ -244,9 +251,7 @@ export const getAdminStats = async (req, res) => {
       }),
       prisma.order.findMany({
         where: {
-          status: {
-            in: ['pending', 'confirmed', 'delivered']
-          }
+          status: { in: ACTIVE_REVENUE_STATUSES }
         },
         select: { totalPrice: true }
       })
@@ -276,9 +281,8 @@ export const updateOrderStatus = async (req, res) => {
 
   try {
     // Validate status
-    const validStatuses = ['pending', 'confirmed', 'delivered', 'cancelled'];
-    if (!status || !validStatuses.includes(status)) {
-      return res.status(400).json({ error: 'Invalid status. Must be: pending, confirmed, delivered, or cancelled' });
+    if (!status || !VALID_ORDER_STATUSES.includes(status)) {
+      return res.status(400).json({ error: 'Invalid status' });
     }
 
     const order = await prisma.order.findUnique({
@@ -301,7 +305,9 @@ export const updateOrderStatus = async (req, res) => {
         user: {
           select: {
             id: true,
-            email: true
+            email: true,
+            name: true,
+            avatar: true
           }
         }
       }

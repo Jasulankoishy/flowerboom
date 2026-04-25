@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
-import { Banknote, ClipboardList, Edit2, Gift, LogOut, Package, Plus, ShoppingBag, Sparkles, Timer, Trash2 } from "lucide-react";
+import { Banknote, Calendar, ClipboardList, Edit2, Gift, LogOut, MapPin, Package, Phone, Plus, ShoppingBag, Sparkles, Timer, Trash2, User } from "lucide-react";
 import { ordersApi, type AdminStats, type Order } from "../api/orders";
 import AdminShowcasePanel from "../components/AdminShowcasePanel";
 import ImageUpload from "../components/ImageUpload";
@@ -11,20 +11,27 @@ import { useAuthStore } from "../stores";
 import type { Product } from "../types";
 
 const STATUS_LABELS: Record<string, string> = {
-  pending: "Ожидает",
-  confirmed: "Подтверждён",
+  pending: "Новый",
+  accepted: "Принят",
+  confirmed: "Принят",
+  preparing: "Собираем",
+  delivering: "В доставке",
   delivered: "Доставлен",
   cancelled: "Отменён",
 };
 
 const STATUS_COLORS: Record<string, string> = {
   pending: "border-yellow-500/40 bg-yellow-500/10 text-yellow-300",
+  accepted: "border-blue-500/40 bg-blue-500/10 text-blue-300",
   confirmed: "border-blue-500/40 bg-blue-500/10 text-blue-300",
+  preparing: "border-purple-500/40 bg-purple-500/10 text-purple-300",
+  delivering: "border-orange-500/40 bg-orange-500/10 text-orange-300",
   delivered: "border-green-500/40 bg-green-500/10 text-green-300",
   cancelled: "border-red-500/40 bg-red-500/10 text-red-300",
 };
 
-const STATUS_OPTIONS = ["all", "pending", "confirmed", "delivered", "cancelled"];
+const STATUS_OPTIONS = ["all", "pending", "accepted", "preparing", "delivering", "delivered", "cancelled"];
+const EDITABLE_STATUS_OPTIONS = ["accepted", "preparing", "delivering", "delivered", "cancelled"];
 
 export default function AdminPanelPage() {
   const { logout } = useAuthStore();
@@ -427,27 +434,52 @@ export default function AdminPanelPage() {
                         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                           <h3 className="font-mono text-sm text-slate-400">#{order.id.slice(0, 8)}</h3>
                           <span className={`rounded-full border px-3 py-1 text-xs font-bold ${STATUS_COLORS[order.status]}`}>
-                            {STATUS_LABELS[order.status]}
+                            {STATUS_LABELS[order.status] || order.status}
                           </span>
                         </div>
-                        <p className="mt-2 text-white-alt">
-                          {order.user?.email || "Клиент"} · {formatDate(order.createdAt)}
-                        </p>
-                        <p className="mt-1 text-sm text-slate-400">
-                          {order.city}, {order.street}, д. {order.house}
-                          {order.apartment ? `, кв. ${order.apartment}` : ""} · {order.phone}
-                        </p>
-                        <p className="mt-1 text-sm text-slate-400">
-                          Доставка: {order.deliveryDate}, {order.deliveryTime}
-                        </p>
+                        <div className="mt-4 grid gap-3 text-sm text-slate-300 sm:grid-cols-2">
+                          <div className="rounded border border-slate-700 bg-slate-900/40 p-3">
+                            <p className="mb-2 flex items-center gap-2 font-bold text-white-alt">
+                              <User className="h-4 w-4 text-sky" />
+                              Кто заказал
+                            </p>
+                            <p>{order.user?.name || "Имя не указано"}</p>
+                            <p className="break-all text-slate-400">{order.user?.email || "Email не указан"}</p>
+                          </div>
+                          <div className="rounded border border-slate-700 bg-slate-900/40 p-3">
+                            <p className="mb-2 flex items-center gap-2 font-bold text-white-alt">
+                              <Phone className="h-4 w-4 text-sky" />
+                              Номер клиента
+                            </p>
+                            <p>{order.phone}</p>
+                            <p className="text-slate-500">Заказ от {formatDate(order.createdAt)}</p>
+                          </div>
+                          <div className="rounded border border-slate-700 bg-slate-900/40 p-3">
+                            <p className="mb-2 flex items-center gap-2 font-bold text-white-alt">
+                              <MapPin className="h-4 w-4 text-sky" />
+                              Адрес
+                            </p>
+                            <p>
+                              {order.city}, {order.street}, д. {order.house}
+                              {order.apartment ? `, кв. ${order.apartment}` : ""}
+                            </p>
+                          </div>
+                          <div className="rounded border border-slate-700 bg-slate-900/40 p-3">
+                            <p className="mb-2 flex items-center gap-2 font-bold text-white-alt">
+                              <Calendar className="h-4 w-4 text-sky" />
+                              Доставка
+                            </p>
+                            <p>{order.deliveryDate}, {order.deliveryTime}</p>
+                          </div>
+                        </div>
                       </div>
                       <div className="flex flex-col gap-2 md:items-end">
                         <select
-                          value={order.status}
+                          value={order.status === "confirmed" ? "accepted" : order.status}
                           onChange={(event) => handleStatusChange(order.id, event.target.value)}
                           className="rounded border border-slate-600 bg-slate-700 px-3 py-2 text-white-alt outline-none focus:border-sky"
                         >
-                          {STATUS_OPTIONS.filter((status) => status !== "all").map((status) => (
+                          {EDITABLE_STATUS_OPTIONS.map((status) => (
                             <option key={status} value={status}>
                               {STATUS_LABELS[status]}
                             </option>
