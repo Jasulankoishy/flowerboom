@@ -1,7 +1,9 @@
 import { motion } from "motion/react";
 import { ShoppingBag, Zap } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useCartStore, useThemeStore } from "../stores";
 import type { Product } from "../types";
+import { getProductPath } from "../utils/productLinks";
 
 interface ProductCardProps {
   product: Product;
@@ -63,7 +65,12 @@ export default function ProductCard({ product, delay, onQuickOrder, onShowReview
 
       <div className="mt-6 w-full space-y-4">
         <div className="flex items-start justify-between gap-3">
-          <h3 className="text-lg font-bold uppercase tracking-tight text-white-alt sm:text-xl">{product.title}</h3>
+          <Link
+            to={getProductPath(product)}
+            className="text-lg font-bold uppercase tracking-tight text-white-alt transition hover:text-sky sm:text-xl"
+          >
+            {product.title}
+          </Link>
           <div className="shrink-0 rounded border border-sky/30 bg-sky/10 px-3 py-2 text-sm font-black text-sky">
             {product.price}
           </div>

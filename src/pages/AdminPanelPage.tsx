@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
-import { Banknote, Calendar, ClipboardList, Edit2, Gift, LogOut, MapPin, Package, Phone, Plus, ShoppingBag, Sparkles, Tag, Timer, Trash2, User } from "lucide-react";
+import { Banknote, Calendar, ClipboardList, Copy, Edit2, ExternalLink, Gift, LogOut, MapPin, Package, Phone, Plus, ShoppingBag, Sparkles, Tag, Timer, Trash2, User } from "lucide-react";
 import { ordersApi, type AdminStats, type Order } from "../api/orders";
 import AdminPromoCodesPanel from "../components/AdminPromoCodesPanel";
 import AdminShowcasePanel from "../components/AdminShowcasePanel";
@@ -10,6 +10,7 @@ import { OCCASIONS, getOccasionLabel } from "../constants/occasions";
 import { useProducts } from "../hooks";
 import { useAuthStore } from "../stores";
 import type { Product } from "../types";
+import { getProductPath, getProductUrl } from "../utils/productLinks";
 
 const STATUS_LABELS: Record<string, string> = {
   pending: "Новый",
@@ -135,6 +136,17 @@ export default function AdminPanelPage() {
   const handleDelete = async (id: string) => {
     if (confirm("Удалить товар?")) {
       await deleteProduct(id);
+    }
+  };
+
+  const handleCopyProductLink = async (product: Product) => {
+    const url = getProductUrl(product);
+
+    try {
+      await navigator.clipboard.writeText(url);
+      alert("Ссылка на товар скопирована");
+    } catch {
+      window.prompt("Скопируйте ссылку на товар", url);
     }
   };
 
@@ -378,6 +390,22 @@ export default function AdminPanelPage() {
                       )}
                     </div>
                     <div className="flex gap-2 sm:shrink-0">
+                      <a
+                        href={getProductPath(product)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="p-2 bg-sky/10 border border-sky/30 text-sky rounded hover:bg-sky/20"
+                        title="Открыть страницу товара"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                      </a>
+                      <button
+                        onClick={() => handleCopyProductLink(product)}
+                        className="p-2 bg-green-500/10 border border-green-500/30 text-green-300 rounded hover:bg-green-500/20"
+                        title="Скопировать ссылку"
+                      >
+                        <Copy className="w-4 h-4" />
+                      </button>
                       <button
                         onClick={() => handleEdit(product)}
                         className="p-2 bg-blue-500/10 border border-blue-500/30 text-blue-400 rounded hover:bg-blue-500/20"

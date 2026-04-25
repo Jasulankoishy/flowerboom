@@ -1,6 +1,7 @@
 export interface Product {
   id: string;
   index: string;
+  slug?: string | null;
   title: string;
   image: string;
   price: string; // Строка в API ("4500"), не number!

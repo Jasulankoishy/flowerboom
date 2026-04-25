@@ -16,7 +16,7 @@ const router = express.Router();
 
 // Public routes
 router.get('/', apiLimiter, getAllProducts);
-router.get('/:id', apiLimiter, validateProductId, getProductById);
+router.get('/:idOrSlug', apiLimiter, getProductById);
 
 // Protected admin routes
 router.post('/', authenticateAdmin, uploadLimiter, upload.single('image'), validateProduct, createProduct);

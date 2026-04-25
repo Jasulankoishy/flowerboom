@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuthStore } from "./stores";
 
 const HomePage = lazy(() => import("./pages/HomePage"));
+const ProductPage = lazy(() => import("./pages/ProductPage"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const AdminLoginPage = lazy(() => import("./pages/AdminLoginPage"));
 const AdminPanelPage = lazy(() => import("./pages/AdminPanelPage"));
@@ -64,6 +65,7 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/product/:idOrSlug" element={<ProductPage />} />
           <Route
             path="/profile"
             element={

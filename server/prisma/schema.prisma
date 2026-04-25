@@ -34,6 +34,7 @@ model Admin {
 model Product {
   id          String      @id @default(uuid())
   index       String
+  slug        String?     @unique
   title       String
   image       String
   price       String // Храним как строку для совместимости с фронтом
