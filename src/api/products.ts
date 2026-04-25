@@ -1,5 +1,5 @@
 import { API_URL, API_ENDPOINTS } from "./config";
-import { apiFetch, apiRequest } from "./client";
+import { apiRequest } from "./client";
 import type { Product } from "../types";
 
 export const productsApi = {
@@ -12,39 +12,32 @@ export const productsApi = {
   },
 
   async create(data: FormData): Promise<Product> {
-    const response = await apiFetch(`${API_URL}${API_ENDPOINTS.products}`, {
+    return apiRequest<Product>(`${API_URL}${API_ENDPOINTS.products}`, {
       method: "POST",
       body: data,
     });
-    if (!response.ok) throw new Error("Failed to create product");
-    return response.json();
   },
 
   async update(id: string, data: FormData): Promise<Product> {
-    const response = await apiFetch(`${API_URL}${API_ENDPOINTS.product(id)}`, {
+    return apiRequest<Product>(`${API_URL}${API_ENDPOINTS.product(id)}`, {
       method: "PUT",
       body: data,
     });
-    if (!response.ok) throw new Error("Failed to update product");
-    return response.json();
   },
 
   async delete(id: string): Promise<void> {
-    const response = await apiFetch(`${API_URL}${API_ENDPOINTS.product(id)}`, {
+    await apiRequest<{ message: string }>(`${API_URL}${API_ENDPOINTS.product(id)}`, {
       method: "DELETE",
     });
-    if (!response.ok) throw new Error("Failed to delete product");
   },
 
-  async uploadImage(file: File): Promise<{ url: string; filename: string }> {
+  async uploadImage(file: File): Promise<{ url: string; path: string; success: boolean }> {
     const formData = new FormData();
     formData.append("image", file);
 
-    const response = await apiFetch(`${API_URL}${API_ENDPOINTS.upload}`, {
+    return apiRequest<{ url: string; path: string; success: boolean }>(`${API_URL}${API_ENDPOINTS.upload}`, {
       method: "POST",
       body: formData,
     });
-    if (!response.ok) throw new Error("Failed to upload image");
-    return response.json();
   },
 };

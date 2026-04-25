@@ -9,7 +9,7 @@ type AuthMode = "login" | "register" | "forgot" | "reset" | "name";
 export default function AuthPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { login, setName: setStoreName } = useAuthStore();
+  const { login, setName: setStoreName, accessToken } = useAuthStore();
 
   const [mode, setMode] = useState<AuthMode>("login");
   const [email, setEmail] = useState("");
@@ -27,13 +27,12 @@ export default function AuthPage() {
   // Проверяем URL параметры при загрузке (для Google OAuth)
   useEffect(() => {
     const urlMode = searchParams.get("mode");
-    const urlToken = searchParams.get("token");
 
-    if (urlMode === "name" && urlToken) {
+    if (urlMode === "name" && accessToken) {
       setMode("name");
-      setTempAccessToken(urlToken);
+      setTempAccessToken(accessToken);
     }
-  }, [searchParams]);
+  }, [accessToken, searchParams]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

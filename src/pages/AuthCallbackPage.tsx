@@ -26,16 +26,16 @@ export default function AuthCallbackPage() {
 
         // Если новый пользователь без имени, перенаправляем на форму имени
         if (isNewUser) {
-          navigate("/auth?mode=name&token=" + token);
+          navigate("/auth?mode=name", { replace: true });
         } else {
-          navigate("/");
+          navigate("/", { replace: true });
         }
       } catch (error) {
         console.error("Failed to parse token:", error);
-        navigate("/auth?error=invalid_token");
+        navigate("/auth?error=invalid_token", { replace: true });
       }
     } else {
-      navigate("/auth?error=missing_tokens");
+      navigate("/auth?error=missing_tokens", { replace: true });
     }
   }, [searchParams, login, navigate]);
 

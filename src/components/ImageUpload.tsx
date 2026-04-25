@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Upload, X, Loader2 } from "lucide-react";
-import { useAuthStore } from "../stores";
-import { API_URL } from "../api/config";
+import { productsApi } from "../api";
 
 interface ImageUploadProps {
   value: string;
@@ -11,7 +10,6 @@ interface ImageUploadProps {
 export default function ImageUpload({ value, onChange }: ImageUploadProps) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
-  const { accessToken } = useAuthStore();
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -34,22 +32,7 @@ export default function ImageUpload({ value, onChange }: ImageUploadProps) {
     setUploading(true);
 
     try {
-      const formData = new FormData();
-      formData.append("image", file);
-
-      const response = await fetch(`${API_URL}/api/upload`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error("Ошибка загрузки");
-      }
-
-      const data = await response.json();
+      const data = await productsApi.uploadImage(file);
       onChange(data.url);
     } catch (err: any) {
       setError(err.message || "Ошибка загрузки файла");

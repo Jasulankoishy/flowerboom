@@ -1,5 +1,5 @@
 import { API_URL, API_ENDPOINTS } from "./config";
-import { apiFetch, apiRequest } from "./client";
+import { apiRequest } from "./client";
 import type { Review } from "../types";
 
 export const reviewsApi = {
@@ -15,9 +15,8 @@ export const reviewsApi = {
   },
 
   async delete(reviewId: string): Promise<void> {
-    const response = await apiFetch(`${API_URL}${API_ENDPOINTS.deleteReview(reviewId)}`, {
+    await apiRequest<{ message: string }>(`${API_URL}${API_ENDPOINTS.deleteReview(reviewId)}`, {
       method: "DELETE",
     });
-    if (!response.ok) throw new Error("Failed to delete review");
   },
 };

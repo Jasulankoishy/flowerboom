@@ -26,6 +26,21 @@ import promoRoutes from './routes/promo.js';
 
 const app = express();
 
+const getAllowedOrigins = () => {
+  const rawOrigins = process.env.FRONTEND_URLS || process.env.FRONTEND_URL || 'http://localhost:5173';
+  return rawOrigins.split(',').map((origin) => origin.trim()).filter(Boolean);
+};
+
+const getSessionSecret = () => {
+  const secret = process.env.SESSION_SECRET || process.env.JWT_SECRET;
+
+  if (process.env.NODE_ENV === 'production' && (!secret || secret.length < 32 || secret.startsWith('your-'))) {
+    throw new Error('SESSION_SECRET or JWT_SECRET must be set to a strong secret in production');
+  }
+
+  return secret || 'development-only-session-secret';
+};
+
 // Hide Express server info
 app.disable('x-powered-by');
 
@@ -43,8 +58,16 @@ app.use(helmet({
 }));
 
 // CORS
+const allowedOrigins = getAllowedOrigins();
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin(origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+      return;
+    }
+
+    callback(new Error('Not allowed by CORS'));
+  },
   credentials: true
 }));
 
@@ -54,7 +77,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Session (required for Passport)
 app.use(session({
-  secret: process.env.JWT_SECRET || 'fallback-secret-key',
+  secret: getSessionSecret(),
   resave: false,
   saveUninitialized: false,
   cookie: {

@@ -17,6 +17,7 @@ interface AuthState {
   isAdmin: boolean;
   login: (accessToken: string, refreshToken: string, user: User) => void;
   loginAdmin: (accessToken: string, refreshToken: string) => void;
+  updateAccessToken: (accessToken: string) => void;
   logout: () => void;
   setName: (name: string) => void;
 }
@@ -48,6 +49,10 @@ export const useAuthStore = create<AuthState>()(
           user: null,
           isAdmin: true,
         });
+      },
+
+      updateAccessToken: (accessToken: string) => {
+        set({ accessToken });
       },
 
       logout: () => {

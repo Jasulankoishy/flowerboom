@@ -9,6 +9,7 @@ export const API_ENDPOINTS = {
   googleAuth: "/api/auth/google",
   adminLogin: "/api/auth/admin/login",
   setName: "/api/auth/set-name",
+  refresh: "/api/auth/refresh",
 
   // Products
   products: "/api/products",
