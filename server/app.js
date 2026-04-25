@@ -46,6 +46,11 @@ const getSessionSecret = () => {
 // Hide Express server info
 app.disable('x-powered-by');
 
+// Render sits behind a proxy and sends X-Forwarded-For; rate-limit needs this to identify real clients.
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
+
 // Security middleware with strict CSP
 app.use(helmet({
   contentSecurityPolicy: {
