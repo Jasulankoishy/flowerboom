@@ -1,4 +1,5 @@
 import { getGeneralWhatsappUrl } from "../utils/whatsapp";
+import { getInstagramUrl } from "../utils/instagram";
 
 export default function Footer() {
   return (
@@ -10,6 +11,14 @@ export default function Footer() {
         className="rounded-full border border-sky/40 bg-sky/10 px-5 py-3 text-sm font-black uppercase tracking-widest text-sky transition hover:bg-sky hover:text-ink"
       >
         Написать в WhatsApp
+      </a>
+      <a
+        href={getInstagramUrl()}
+        target="_blank"
+        rel="noreferrer"
+        className="rounded-full border border-sky/40 bg-sky/10 px-5 py-3 text-sm font-black uppercase tracking-widest text-sky transition hover:bg-sky hover:text-ink"
+      >
+        Instagram
       </a>
       <div className="text-left sm:text-right">
         <div className="text-[10px] font-bold text-slate-600 uppercase tracking-[0.2em] mb-1">Global Presence</div>

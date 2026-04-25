@@ -1,7 +1,8 @@
 import { motion } from "motion/react";
-import { MessageCircle, Search, ShoppingBag, User, Moon, Sun } from "lucide-react";
+import { Instagram, MessageCircle, Search, ShoppingBag, User, Moon, Sun } from "lucide-react";
 import { useCartStore, useThemeStore } from "../stores";
 import { getGeneralWhatsappUrl } from "../utils/whatsapp";
+import { getInstagramUrl } from "../utils/instagram";
 
 interface HeaderProps {
   onSearchClick: () => void;
@@ -31,6 +32,22 @@ export default function Header({ onSearchClick, onCartClick, onProfileClick }: H
       </div>
 
       <div className="grid grid-cols-5 gap-2 sm:flex sm:gap-4 lg:shrink-0">
+        <motion.a
+          href={getInstagramUrl()}
+          target="_blank"
+          rel="noreferrer"
+          className={`flex h-12 w-12 items-center justify-center rounded-full border transition-all sm:h-16 sm:w-16 ${
+            isDark
+              ? 'border-pink-400 text-pink-400 hover:bg-pink-400 hover:text-gray-900'
+              : 'border-sky text-sky hover:bg-sky hover:text-ink'
+          }`}
+          whileHover={{ scale: 1.1, rotate: 4 }}
+          whileTap={{ scale: 0.9 }}
+          transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+          aria-label="Открыть Instagram"
+        >
+          <Instagram className="h-5 w-5 stroke-[3px] sm:h-6 sm:w-6" />
+        </motion.a>
         <motion.a
           href={getGeneralWhatsappUrl()}
           target="_blank"

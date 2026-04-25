@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, ChevronRight, MessageCircle, ShieldCheck, ShoppingBag, Sparkles, Truck, Zap } from "lucide-react";
+import { ArrowLeft, ChevronRight, Instagram, MessageCircle, ShieldCheck, ShoppingBag, Sparkles, Truck, Zap } from "lucide-react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import QuickOrderModal from "../components/QuickOrderModal";
@@ -13,6 +13,7 @@ import { getOccasionLabel } from "../constants/occasions";
 import { canOrderProduct, getAvailabilityClass, getAvailabilityLabel } from "../constants/products";
 import { getProductPath } from "../utils/productLinks";
 import { getProductWhatsappUrl } from "../utils/whatsapp";
+import { getInstagramUrl } from "../utils/instagram";
 
 export default function ProductPage() {
   const { idOrSlug = "" } = useParams();
@@ -183,6 +184,15 @@ export default function ProductPage() {
                     >
                       <MessageCircle className="h-5 w-5" />
                       Написать в WhatsApp
+                    </a>
+                    <a
+                      href={getInstagramUrl()}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center justify-center gap-2 rounded-2xl border border-sky/40 bg-sky/10 py-4 text-sm font-black uppercase tracking-widest text-sky transition hover:bg-sky hover:text-ink sm:col-span-2"
+                    >
+                      <Instagram className="h-5 w-5" />
+                      Instagram
                     </a>
                     <button
                       onClick={() => {
