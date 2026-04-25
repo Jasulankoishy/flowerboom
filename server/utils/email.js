@@ -1,6 +1,28 @@
 import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 
 let resend = null;
+let smtpTransporter = null;
+
+const getSmtpTransporter = () => {
+  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+    return null;
+  }
+
+  if (!smtpTransporter) {
+    smtpTransporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST || 'smtp.gmail.com',
+      port: Number(process.env.SMTP_PORT || 465),
+      secure: process.env.SMTP_SECURE !== 'false',
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+    });
+  }
+
+  return smtpTransporter;
+};
 
 const getResendClient = () => {
   if (!resend && process.env.RESEND_API_KEY) {
@@ -10,17 +32,9 @@ const getResendClient = () => {
 };
 
 export const sendVerificationCode = async (email, code) => {
-  const client = getResendClient();
-
-  if (!client) {
-    throw new Error('Resend API key not configured');
-  }
-
-  const { data, error } = await client.emails.send({
-    from: process.env.EMAIL_FROM,
-    to: email,
-    subject: 'Ваш код для входа — Flowerboom',
-    html: `
+  const from = process.env.EMAIL_FROM || process.env.SMTP_USER;
+  const subject = 'Ваш код для входа — Flowerboom';
+  const html = `
       <!DOCTYPE html>
       <html>
       <head>
@@ -84,13 +98,36 @@ export const sendVerificationCode = async (email, code) => {
         </table>
       </body>
       </html>
-    `
-  });
+    `;
 
-  if (error) {
-    console.error('Resend error:', error);
-    throw new Error('Не удалось отправить письмо');
+  const transporter = getSmtpTransporter();
+
+  if (transporter) {
+    return transporter.sendMail({
+      from: `"Flowerboom" <${from}>`,
+      to: email,
+      subject,
+      html,
+    });
   }
 
-  return data;
+  const client = getResendClient();
+
+  if (client) {
+    const { data, error } = await client.emails.send({
+      from,
+      to: email,
+      subject,
+      html,
+    });
+
+    if (error) {
+      console.error('Resend error:', error);
+      throw new Error('Не удалось отправить письмо');
+    }
+
+    return data;
+  }
+
+  throw new Error('Email provider not configured');
 };
