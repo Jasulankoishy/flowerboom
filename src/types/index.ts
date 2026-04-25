@@ -69,6 +69,9 @@ export interface Order {
   deliveryTime: string;
   status: "pending" | "accepted" | "confirmed" | "preparing" | "delivering" | "delivered" | "cancelled";
   totalPrice: string;
+  originalTotalPrice?: string;
+  discountAmount?: string;
+  promoCode?: string;
   giftCardEnabled: boolean;
   giftMessage?: string;
   items: OrderItem[];
@@ -98,4 +101,5 @@ export interface CreateOrderDto {
   totalPrice?: string;
   giftCardEnabled?: boolean;
   giftMessage?: string;
+  promoCode?: string;
 }

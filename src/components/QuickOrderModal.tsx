@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "motion/react";
-import { X } from "lucide-react";
+import { Gift, X } from "lucide-react";
 import { useAuthStore } from "../stores";
 import { ordersApi } from "../api/orders";
 import type { Product, CreateOrderDto } from "../types";
@@ -20,6 +20,8 @@ export default function QuickOrderModal({ product, onClose }: QuickOrderModalPro
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [giftCardEnabled, setGiftCardEnabled] = useState(false);
+  const [giftMessage, setGiftMessage] = useState("");
 
   // Form fields
   const [formData, setFormData] = useState({
@@ -106,6 +108,9 @@ export default function QuickOrderModal({ product, onClose }: QuickOrderModalPro
     if (!formData.deliveryTime) {
       errors.deliveryTime = "Выберите время доставки";
     }
+    if (giftCardEnabled && giftMessage.trim().length > 300) {
+      errors.giftMessage = "Максимум 300 символов";
+    }
 
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
@@ -139,6 +144,8 @@ export default function QuickOrderModal({ product, onClose }: QuickOrderModalPro
         deliveryDate: formData.deliveryDate,
         deliveryTime: formData.deliveryTime,
         totalPrice: totalPrice,
+        giftCardEnabled,
+        giftMessage: giftCardEnabled ? giftMessage.trim() : undefined,
       };
 
       const result = await ordersApi.create(orderData);
@@ -379,6 +386,37 @@ export default function QuickOrderModal({ product, onClose }: QuickOrderModalPro
               ))}
             </select>
             {fieldErrors.deliveryTime && <p className="text-red-400 text-sm mt-1">{fieldErrors.deliveryTime}</p>}
+          </div>
+
+          <div className="rounded-lg border border-slate-700 bg-slate-900/40 p-4">
+            <label className="flex cursor-pointer items-center gap-3">
+              <input
+                type="checkbox"
+                checked={giftCardEnabled}
+                onChange={(event) => setGiftCardEnabled(event.target.checked)}
+                className="h-5 w-5 accent-[#d4af37]"
+              />
+              <span className="flex items-center gap-2 font-bold text-white-alt">
+                <Gift className="h-5 w-5 text-sky" />
+                Добавить открытку
+              </span>
+            </label>
+            {giftCardEnabled && (
+              <div className="mt-4">
+                <textarea
+                  value={giftMessage}
+                  onChange={(event) => setGiftMessage(event.target.value)}
+                  maxLength={300}
+                  rows={4}
+                  placeholder="Текст открытки"
+                  className={`w-full rounded border bg-slate-700 px-4 py-3 text-white-alt outline-none focus:border-sky ${fieldErrors.giftMessage ? "border-red-500" : "border-slate-600"}`}
+                />
+                <div className="mt-1 flex justify-between text-xs text-slate-500">
+                  <span>{fieldErrors.giftMessage || "Работники напишут этот текст рядом с букетом"}</span>
+                  <span>{giftMessage.length}/300</span>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Buttons */}

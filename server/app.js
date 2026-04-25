@@ -22,6 +22,7 @@ import uploadRoutes from './routes/upload.js';
 import ordersRoutes from './routes/orders.js';
 import showcaseRoutes from './routes/showcase.js';
 import telegramRoutes from './routes/telegram.js';
+import promoRoutes from './routes/promo.js';
 
 const app = express();
 
@@ -95,6 +96,7 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api', ordersRoutes);
 app.use('/api', showcaseRoutes);
 app.use('/api', telegramRoutes);
+app.use('/api', promoRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

@@ -19,6 +19,7 @@ export interface CreateOrderData {
   totalPrice?: string;
   giftCardEnabled?: boolean;
   giftMessage?: string;
+  promoCode?: string;
 }
 
 export interface Order {
@@ -33,6 +34,9 @@ export interface Order {
   deliveryTime: string;
   status: "pending" | "accepted" | "confirmed" | "preparing" | "delivering" | "delivered" | "cancelled";
   totalPrice: string;
+  originalTotalPrice?: string;
+  discountAmount?: string;
+  promoCode?: string;
   giftCardEnabled: boolean;
   giftMessage?: string;
   createdAt: string;

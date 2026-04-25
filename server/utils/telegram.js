@@ -81,6 +81,9 @@ export const formatOrderMessage = (order) => {
     '',
     `<b>Открытка:</b> ${giftText}`,
     '',
+    `<b>Промокод:</b> ${escapeHtml(order.promoCode || 'Нет')}`,
+    `<b>Скидка:</b> ${escapeHtml(order.discountAmount || '0.00')}₽`,
+    `<b>До скидки:</b> ${escapeHtml(order.originalTotalPrice || order.totalPrice)}₽`,
     `<b>Сумма:</b> ${escapeHtml(order.totalPrice)}₽`
   ].join('\n');
 };

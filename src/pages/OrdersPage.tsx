@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
 import { useAuthStore } from "../stores";
 import { ordersApi, type Order } from "../api/orders";
-import { Package, MapPin, Phone, Calendar, Clock, Gift } from "lucide-react";
+import { Package, MapPin, Phone, Calendar, Clock, Gift, Tag } from "lucide-react";
 
 const STATUS_LABELS: Record<string, string> = {
   pending: "Новый заказ",
@@ -271,6 +271,20 @@ export default function OrdersPage() {
                   <p className="text-slate-300 text-sm">
                     {order.giftMessage || "Без текста"}
                   </p>
+                </div>
+              )}
+
+              {(order.promoCode || Number(order.discountAmount || 0) > 0) && (
+                <div className="mb-6 rounded-lg bg-green-500/10 p-4 border border-green-500/30">
+                  <h3 className="text-sm font-bold text-white-alt mb-3 flex items-center gap-2">
+                    <Tag className="w-4 h-4 text-green-300" />
+                    Промокод
+                  </h3>
+                  <div className="grid gap-2 text-sm text-slate-300 sm:grid-cols-3">
+                    <p>Код: <span className="font-bold text-green-300">{order.promoCode || "—"}</span></p>
+                    <p>До скидки: {order.originalTotalPrice || order.totalPrice}₽</p>
+                    <p>Скидка: −{order.discountAmount || "0.00"}₽</p>
+                  </div>
                 </div>
               )}
 

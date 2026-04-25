@@ -94,6 +94,9 @@ model Order {
 
   // Статус и цена
   status          String  @default("pending") // pending, confirmed, delivered, cancelled
+  originalTotalPrice String? // Сумма до скидки
+  discountAmount  String? // Размер скидки
+  promoCode       String? // Применённый промокод
   totalPrice      String // Храним как строку для совместимости
   giftCardEnabled Boolean @default(false)
   giftMessage     String?
@@ -103,6 +106,17 @@ model Order {
 
   @@index([userId])
   @@index([status])
+}
+
+model PromoCode {
+  id        String   @id @default(uuid())
+  code      String   @unique
+  type      String // percent, fixed
+  value     Float
+  isActive  Boolean  @default(true)
+  expiresAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model OrderItem {

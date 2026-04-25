@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
-import { Banknote, Calendar, ClipboardList, Edit2, Gift, LogOut, MapPin, Package, Phone, Plus, ShoppingBag, Sparkles, Timer, Trash2, User } from "lucide-react";
+import { Banknote, Calendar, ClipboardList, Edit2, Gift, LogOut, MapPin, Package, Phone, Plus, ShoppingBag, Sparkles, Tag, Timer, Trash2, User } from "lucide-react";
 import { ordersApi, type AdminStats, type Order } from "../api/orders";
+import AdminPromoCodesPanel from "../components/AdminPromoCodesPanel";
 import AdminShowcasePanel from "../components/AdminShowcasePanel";
 import ImageUpload from "../components/ImageUpload";
 import { OCCASIONS, getOccasionLabel } from "../constants/occasions";
@@ -37,7 +38,7 @@ export default function AdminPanelPage() {
   const { logout } = useAuthStore();
   const { products, loading, createProduct, updateProduct, deleteProduct } = useProducts();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<"products" | "orders" | "showcase">("products");
+  const [activeTab, setActiveTab] = useState<"products" | "orders" | "showcase" | "promo">("products");
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [imageUrl, setImageUrl] = useState("");
@@ -186,6 +187,17 @@ export default function AdminPanelPage() {
             >
               <Sparkles className="w-4 h-4" />
               Витрина
+            </button>
+            <button
+              onClick={() => setActiveTab("promo")}
+              className={`flex items-center justify-center gap-2 rounded border px-3 py-2 text-sm font-bold transition-all sm:px-4 ${
+                activeTab === "promo"
+                  ? "border-sky bg-sky text-ink"
+                  : "border-slate-600 text-white-alt hover:border-sky"
+              }`}
+            >
+              <Tag className="w-4 h-4" />
+              Промокоды
             </button>
             <button
               onClick={handleLogout}
@@ -489,6 +501,20 @@ export default function AdminPanelPage() {
                       </div>
                     </div>
 
+                    {(order.promoCode || Number(order.discountAmount || 0) > 0) && (
+                      <div className="mb-4 rounded border border-green-500/30 bg-green-500/10 p-4">
+                        <h4 className="mb-2 flex items-center gap-2 font-bold text-white-alt">
+                          <Tag className="h-4 w-4 text-green-300" />
+                          Промокод
+                        </h4>
+                        <div className="grid gap-2 text-sm text-slate-300 sm:grid-cols-3">
+                          <p>Код: <span className="font-bold text-green-300">{order.promoCode || "—"}</span></p>
+                          <p>До скидки: {order.originalTotalPrice || order.totalPrice}₽</p>
+                          <p>Скидка: −{order.discountAmount || "0.00"}₽</p>
+                        </div>
+                      </div>
+                    )}
+
                     <div className="grid gap-3 md:grid-cols-2">
                       {order.items.map((item) => (
                         <div key={item.id} className="flex gap-3 rounded border border-slate-700 bg-slate-900/40 p-3">
@@ -521,8 +547,10 @@ export default function AdminPanelPage() {
               </div>
             )}
           </section>
-        ) : (
+        ) : activeTab === "showcase" ? (
           <AdminShowcasePanel products={products} />
+        ) : (
+          <AdminPromoCodesPanel />
         )}
       </main>
     </div>

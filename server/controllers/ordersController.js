@@ -1,5 +1,6 @@
 import prisma from '../prisma/client.js';
 import { notifyEmergency, notifyNewOrder } from '../utils/telegram.js';
+import { applyPromoCode, normalizePromoCode } from '../utils/promoCodes.js';
 
 const parsePrice = (value) => {
   const normalized = String(value || '').replace(/\s/g, '').replace(',', '.').replace(/[^\d.]/g, '');
@@ -22,7 +23,8 @@ export const createOrder = async (req, res) => {
     deliveryDate,
     deliveryTime,
     giftCardEnabled = false,
-    giftMessage = ''
+    giftMessage = '',
+    promoCode: rawPromoCode = ''
   } = req.body;
 
   try {
@@ -90,7 +92,10 @@ export const createOrder = async (req, res) => {
       return res.status(400).json({ error: 'Invalid order items' });
     }
 
-    const computedTotal = normalizedItems.reduce((sum, item) => sum + item.lineTotal, 0).toFixed(2);
+    const originalTotal = normalizedItems.reduce((sum, item) => sum + item.lineTotal, 0);
+    const promoResult = await applyPromoCode(rawPromoCode, originalTotal);
+    const appliedPromoCode = promoResult.promoCode ? normalizePromoCode(rawPromoCode) : null;
+    const computedTotal = promoResult.finalTotal.toFixed(2);
     const cleanGiftMessage = giftCardEnabled ? String(giftMessage || '').trim().slice(0, 300) : null;
 
     // Create order with items
@@ -104,6 +109,9 @@ export const createOrder = async (req, res) => {
         phone: phone.trim(),
         deliveryDate,
         deliveryTime,
+        originalTotalPrice: originalTotal.toFixed(2),
+        discountAmount: promoResult.discount.toFixed(2),
+        promoCode: appliedPromoCode,
         totalPrice: computedTotal,
         giftCardEnabled: Boolean(giftCardEnabled),
         giftMessage: cleanGiftMessage,

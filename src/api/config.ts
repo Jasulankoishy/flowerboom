@@ -25,6 +25,11 @@ export const API_ENDPOINTS = {
   adminStats: "/api/admin/stats",
   updateOrderStatus: (id: string) => `/api/admin/orders/${id}/status`,
 
+  // Promo codes
+  validatePromo: "/api/promo/validate",
+  adminPromoCodes: "/api/admin/promo-codes",
+  adminPromoCode: (id: string) => `/api/admin/promo-codes/${id}`,
+
   // Showcase
   showcase: "/api/showcase",
   adminShowcase: "/api/admin/showcase",

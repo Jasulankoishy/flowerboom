@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
 import { Calendar, Gift, Minus, Plus, ShoppingBag, Trash2, X } from "lucide-react";
 import { ordersApi } from "../api/orders";
+import { promoCodesApi, type PromoValidationResult } from "../api/promoCodes";
 import { useAuthStore, useCartStore } from "../stores";
 
 interface CartModalProps {
@@ -23,6 +24,10 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
   const [successMessage, setSuccessMessage] = useState("");
   const [giftCardEnabled, setGiftCardEnabled] = useState(false);
   const [giftMessage, setGiftMessage] = useState("");
+  const [promoCode, setPromoCode] = useState("");
+  const [appliedPromo, setAppliedPromo] = useState<PromoValidationResult | null>(null);
+  const [promoLoading, setPromoLoading] = useState(false);
+  const [promoError, setPromoError] = useState("");
   const [formData, setFormData] = useState({
     city: "",
     street: "",
@@ -33,6 +38,11 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
     deliveryTime: "",
   });
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    setAppliedPromo(null);
+    setPromoError("");
+  }, [items]);
 
   if (!isOpen) return null;
 
@@ -82,6 +92,28 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
     return Object.keys(errors).length === 0;
   };
 
+  const handleApplyPromo = async () => {
+    const code = promoCode.trim();
+    setPromoError("");
+    setAppliedPromo(null);
+
+    if (!code) {
+      setPromoError("Введите промокод");
+      return;
+    }
+
+    setPromoLoading(true);
+    try {
+      const result = await promoCodesApi.validate(code, getTotalPrice());
+      setAppliedPromo(result);
+      setPromoCode(result.code);
+    } catch (err: any) {
+      setPromoError(err.message || "Промокод не найден");
+    } finally {
+      setPromoLoading(false);
+    }
+  };
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setError("");
@@ -109,6 +141,7 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
         deliveryTime: formData.deliveryTime,
         giftCardEnabled,
         giftMessage: giftCardEnabled ? giftMessage.trim() : undefined,
+        promoCode: appliedPromo?.code,
       });
 
       clearCart();
@@ -216,7 +249,15 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
 
               <div className="rounded-lg border border-sky/30 bg-sky/10 p-5">
                 <p className="text-sm uppercase tracking-[0.25em] text-sky">Итого</p>
-                <p className="mt-2 text-3xl font-black text-white-alt sm:text-4xl">{formatMoney(getTotalPrice())}</p>
+                {appliedPromo && (
+                  <div className="mt-3 space-y-1 text-sm text-slate-300">
+                    <p>До скидки: {formatMoney(Number(appliedPromo.originalTotal))}</p>
+                    <p className="text-green-300">Скидка {appliedPromo.code}: −{formatMoney(Number(appliedPromo.discountAmount))}</p>
+                  </div>
+                )}
+                <p className="mt-2 text-3xl font-black text-white-alt sm:text-4xl">
+                  {formatMoney(appliedPromo ? Number(appliedPromo.totalPrice) : getTotalPrice())}
+                </p>
                 <p className="mt-2 text-sm text-slate-400">Финальная сумма пересчитывается сервером по актуальным ценам.</p>
               </div>
             </div>
@@ -306,6 +347,32 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
               </div>
 
               <div className="rounded-lg border border-slate-700 bg-slate-900/40 p-4">
+                <label className="mb-3 block text-sm font-bold text-white-alt">Промокод</label>
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <input
+                    value={promoCode}
+                    onChange={(event) => {
+                      setPromoCode(event.target.value.toUpperCase());
+                      setAppliedPromo(null);
+                      setPromoError("");
+                    }}
+                    placeholder="LOVE10"
+                    className="w-full rounded border border-slate-600 bg-slate-700 px-4 py-3 text-white-alt outline-none focus:border-sky"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleApplyPromo}
+                    disabled={promoLoading}
+                    className="rounded bg-sky px-5 py-3 font-bold text-ink hover:brightness-110 disabled:opacity-50"
+                  >
+                    {promoLoading ? "..." : "Применить"}
+                  </button>
+                </div>
+                {appliedPromo && <p className="mt-2 text-sm text-green-300">Промокод применён</p>}
+                {promoError && <p className="mt-2 text-sm text-red-400">{promoError}</p>}
+              </div>
+
+              <div className="rounded-lg border border-slate-700 bg-slate-900/40 p-4">
                 <label className="flex cursor-pointer items-center gap-3">
                   <input
                     type="checkbox"
@@ -341,7 +408,7 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
                 disabled={loading}
                 className="w-full rounded bg-sky px-6 py-4 font-black uppercase tracking-widest text-ink transition-all hover:brightness-110 disabled:opacity-50"
               >
-                {loading ? "Оформляем..." : `Оформить заказ ${formatMoney(getTotalPrice())}`}
+                {loading ? "Оформляем..." : `Оформить заказ ${formatMoney(appliedPromo ? Number(appliedPromo.totalPrice) : getTotalPrice())}`}
               </button>
             </div>
           </form>
