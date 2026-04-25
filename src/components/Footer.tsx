@@ -10,7 +10,7 @@ export default function Footer() {
         rel="noreferrer"
         className="rounded-full border border-sky/40 bg-sky/10 px-5 py-3 text-sm font-black uppercase tracking-widest text-sky transition hover:bg-sky hover:text-ink"
       >
-        Написать в WhatsApp
+        WhatsApp
       </a>
       <a
         href={getInstagramUrl()}

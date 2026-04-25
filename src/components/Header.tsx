@@ -60,7 +60,7 @@ export default function Header({ onSearchClick, onCartClick, onProfileClick }: H
           whileHover={{ scale: 1.1, rotate: -4 }}
           whileTap={{ scale: 0.9 }}
           transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-          aria-label="Написать в WhatsApp"
+          aria-label="WhatsApp"
         >
           <MessageCircle className="h-5 w-5 stroke-[3px] sm:h-6 sm:w-6" />
         </motion.a>

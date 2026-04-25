@@ -5,8 +5,7 @@ import { Calendar, Gift, MessageCircle, Minus, Plus, ShoppingBag, Trash2, X } fr
 import { ordersApi } from "../api/orders";
 import { promoCodesApi, type PromoValidationResult } from "../api/promoCodes";
 import { useAuthStore, useCartStore } from "../stores";
-import TimeWheelPicker from "./TimeWheelPicker";
-import { getLocalDateString, isDeliveryTimeAllowed } from "../utils/deliveryTime";
+import { getLocalDateString, getMinDeliveryTime, isDeliveryTimeAllowed } from "../utils/deliveryTime";
 import { getGeneralWhatsappUrl } from "../utils/whatsapp";
 
 interface CartModalProps {
@@ -366,10 +365,12 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
                   {fieldErrors.deliveryDate && <p className="mt-1 text-sm text-red-400">{fieldErrors.deliveryDate}</p>}
                 </div>
                 <div>
-                  <TimeWheelPicker
+                  <input
+                    type="time"
                     value={formData.deliveryTime}
-                    deliveryDate={formData.deliveryDate}
-                    onChange={(deliveryTime) => setFormData((prev) => ({ ...prev, deliveryTime }))}
+                    min={getMinDeliveryTime(formData.deliveryDate)}
+                    onChange={(event) => setFormData((prev) => ({ ...prev, deliveryTime: event.target.value }))}
+                    className={`w-full rounded border bg-slate-700 px-4 py-3 text-white-alt outline-none focus:border-sky ${fieldErrors.deliveryTime ? "border-red-500" : "border-slate-600"}`}
                   />
                   {fieldErrors.deliveryTime && <p className="mt-1 text-sm text-red-400">{fieldErrors.deliveryTime}</p>}
                 </div>

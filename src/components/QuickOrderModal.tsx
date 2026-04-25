@@ -6,8 +6,7 @@ import { ordersApi } from "../api/orders";
 import type { Product, CreateOrderDto } from "../types";
 import { useNavigate } from "react-router-dom";
 import { canOrderProduct, getAvailabilityClass, getAvailabilityLabel } from "../constants/products";
-import TimeWheelPicker from "./TimeWheelPicker";
-import { getLocalDateString, isDeliveryTimeAllowed } from "../utils/deliveryTime";
+import { getLocalDateString, getMinDeliveryTime, isDeliveryTimeAllowed } from "../utils/deliveryTime";
 import { getProductWhatsappUrl } from "../utils/whatsapp";
 
 interface QuickOrderModalProps {
@@ -416,10 +415,14 @@ export default function QuickOrderModal({ product, onClose }: QuickOrderModalPro
 
           {/* Delivery Time */}
           <div>
-            <TimeWheelPicker
+            <input
+              type="time"
               value={formData.deliveryTime}
-              deliveryDate={formData.deliveryDate}
-              onChange={(deliveryTime) => setFormData((prev) => ({ ...prev, deliveryTime }))}
+              min={getMinDeliveryTime(formData.deliveryDate)}
+              onChange={(e) => setFormData((prev) => ({ ...prev, deliveryTime: e.target.value }))}
+              className={`w-full bg-slate-700 border rounded px-4 py-2 text-white-alt focus:outline-none focus:border-sky transition-all ${
+                fieldErrors.deliveryTime ? "border-red-500" : "border-slate-600"
+              }`}
             />
             {fieldErrors.deliveryTime && <p className="text-red-400 text-sm mt-1">{fieldErrors.deliveryTime}</p>}
           </div>

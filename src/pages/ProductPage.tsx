@@ -183,7 +183,7 @@ export default function ProductPage() {
                       className="flex items-center justify-center gap-2 rounded-2xl border border-sky/40 bg-sky/10 py-4 text-sm font-black uppercase tracking-widest text-sky transition hover:bg-sky hover:text-ink sm:col-span-2"
                     >
                       <MessageCircle className="h-5 w-5" />
-                      Написать в WhatsApp
+                      WhatsApp
                     </a>
                     <a
                       href={getInstagramUrl()}
