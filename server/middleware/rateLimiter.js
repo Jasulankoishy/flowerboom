@@ -36,3 +36,11 @@ export const uploadLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
+
+export const reviewLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 5,
+  message: { message: 'Слишком много отзывов. Попробуйте позже' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});

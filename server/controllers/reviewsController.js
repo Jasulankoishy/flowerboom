@@ -22,12 +22,17 @@ export const addReview = async (req, res) => {
   const { rating, comment, userName } = req.body;
 
   try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.userId },
+      select: { name: true, email: true }
+    });
+
     const review = await prisma.review.create({
       data: {
         productId: id,
         rating: Number(rating),
         comment: comment || '',
-        userName: userName || 'Аноним'
+        userName: userName || user?.name || user?.email || 'Покупатель'
       }
     });
 

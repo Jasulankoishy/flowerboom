@@ -145,10 +145,14 @@ export const forgotPassword = async (req, res) => {
           await sendVerificationCode(email, code);
         } catch (emailError) {
           console.error('Email send error:', emailError);
-          console.log(`\n📧 Password reset code for ${email}: ${code}\n`);
+          if (process.env.NODE_ENV !== 'production') {
+            console.log(`\n📧 Password reset code for ${email}: ${code}\n`);
+          }
         }
       } else {
-        console.log(`\n📧 Password reset code for ${email}: ${code}\n`);
+        if (process.env.NODE_ENV !== 'production') {
+          console.log(`\n📧 Password reset code for ${email}: ${code}\n`);
+        }
       }
     }
 
