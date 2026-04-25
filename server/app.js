@@ -23,6 +23,7 @@ import ordersRoutes from './routes/orders.js';
 import showcaseRoutes from './routes/showcase.js';
 import telegramRoutes from './routes/telegram.js';
 import promoRoutes from './routes/promo.js';
+import shareRoutes from './routes/share.js';
 
 const app = express();
 
@@ -110,6 +111,9 @@ app.use((req, res, next) => {
 
 // Static files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Public share pages for social previews
+app.use('/share', shareRoutes);
 
 // Routes
 app.use('/api/auth', authRoutes);

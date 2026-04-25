@@ -10,7 +10,7 @@ import { OCCASIONS, getOccasionLabel } from "../constants/occasions";
 import { useProducts } from "../hooks";
 import { useAuthStore } from "../stores";
 import type { Product } from "../types";
-import { getProductPath, getProductUrl } from "../utils/productLinks";
+import { getProductPath, getProductShareUrl } from "../utils/productLinks";
 
 const STATUS_LABELS: Record<string, string> = {
   pending: "Новый",
@@ -140,7 +140,7 @@ export default function AdminPanelPage() {
   };
 
   const handleCopyProductLink = async (product: Product) => {
-    const url = getProductUrl(product);
+    const url = getProductShareUrl(product);
 
     try {
       await navigator.clipboard.writeText(url);
