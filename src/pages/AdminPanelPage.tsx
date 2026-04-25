@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
-import { Banknote, Calendar, ClipboardList, Copy, Download, Edit2, ExternalLink, Gift, LogOut, MapPin, Package, Phone, Plus, ShoppingBag, Sparkles, Tag, Timer, Trash2, User } from "lucide-react";
+import { Banknote, Calendar, ClipboardList, Copy, Download, Edit2, ExternalLink, Gift, LogOut, MapPin, Package, Phone, Plus, Search, ShoppingBag, Sparkles, Tag, Timer, Trash2, User } from "lucide-react";
 import { adminExportApi, type ExportFormat, type ExportKind } from "../api";
 import { ordersApi, type AdminStats, type Order } from "../api/orders";
 import AdminPromoCodesPanel from "../components/AdminPromoCodesPanel";
 import AdminShowcasePanel from "../components/AdminShowcasePanel";
 import ImageUpload from "../components/ImageUpload";
 import { OCCASIONS, getOccasionLabel } from "../constants/occasions";
+import { AVAILABILITY_OPTIONS, getAvailabilityClass, getAvailabilityLabel } from "../constants/products";
 import { useProducts } from "../hooks";
 import { useAuthStore } from "../stores";
 import type { Product } from "../types";
@@ -38,7 +39,7 @@ const EDITABLE_STATUS_OPTIONS = ["accepted", "preparing", "delivering", "deliver
 
 export default function AdminPanelPage() {
   const { logout } = useAuthStore();
-  const { products, loading, createProduct, updateProduct, deleteProduct } = useProducts();
+  const { products, loading, createProduct, updateProduct, deleteProduct } = useProducts(true);
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<"products" | "orders" | "showcase" | "promo">("products");
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -49,6 +50,10 @@ export default function AdminPanelPage() {
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [ordersError, setOrdersError] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [orderSearch, setOrderSearch] = useState("");
+  const [orderDateFrom, setOrderDateFrom] = useState("");
+  const [orderDateTo, setOrderDateTo] = useState("");
+  const [orderSort, setOrderSort] = useState<"newest" | "oldest" | "deliveryDate" | "totalHigh" | "totalLow">("newest");
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [statsError, setStatsError] = useState("");
   const [exporting, setExporting] = useState("");
@@ -60,20 +65,26 @@ export default function AdminPanelPage() {
 
   useEffect(() => {
     if (activeTab === "orders") {
-      loadOrders(statusFilter);
+      loadOrders();
     }
-  }, [activeTab, statusFilter]);
+  }, [activeTab, statusFilter, orderSearch, orderDateFrom, orderDateTo, orderSort]);
 
   const handleLogout = () => {
     logout();
     navigate("/admin/login");
   };
 
-  const loadOrders = async (status = statusFilter) => {
+  const loadOrders = async () => {
     setOrdersLoading(true);
     setOrdersError("");
     try {
-      const data = await ordersApi.getAllOrders(status === "all" ? undefined : status);
+      const data = await ordersApi.getAllOrders({
+        status: statusFilter,
+        q: orderSearch.trim(),
+        dateFrom: orderDateFrom,
+        dateTo: orderDateTo,
+        sortBy: orderSort,
+      });
       setOrders(data);
     } catch (err: any) {
       setOrdersError(err.message || "Ошибка загрузки заказов");
@@ -111,6 +122,8 @@ export default function AdminPanelPage() {
       image: imageUrl,
       description: formData.get("description") as string,
       occasions: selectedOccasions,
+      isPublished: formData.get("isPublished") === "on",
+      availability: formData.get("availability") as Product["availability"],
     };
 
     if (editingProduct) {
@@ -344,6 +357,36 @@ export default function AdminPanelPage() {
                     required
                   />
                   <ImageUpload value={imageUrl} onChange={setImageUrl} />
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <label className="flex items-center gap-3 rounded border border-slate-600 bg-slate-700 px-4 py-3 text-white-alt">
+                      <input
+                        name="isPublished"
+                        type="checkbox"
+                        defaultChecked={editingProduct?.isPublished ?? true}
+                        className="h-5 w-5 accent-sky"
+                      />
+                      <span>
+                        <span className="block font-bold">Опубликован</span>
+                        <span className="text-xs text-slate-400">Если выключить, клиент товар не увидит.</span>
+                      </span>
+                    </label>
+                    <div>
+                      <label className="mb-2 block text-sm font-medium text-slate-300">
+                        Наличие
+                      </label>
+                      <select
+                        name="availability"
+                        defaultValue={editingProduct?.availability || "in_stock"}
+                        className="w-full rounded border border-slate-600 bg-slate-700 px-4 py-3 text-white-alt outline-none focus:border-sky"
+                      >
+                        {AVAILABILITY_OPTIONS.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
                   <div>
                     <label className="mb-2 block text-sm font-medium text-slate-300">
                       Поводы
@@ -416,6 +459,18 @@ export default function AdminPanelPage() {
                       <h3 className="font-bold text-white-alt">{product.title}</h3>
                       <p className="text-sky font-bold">{product.price}</p>
                       <p className="text-sm text-slate-400 line-clamp-1">{product.description}</p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <span className={`rounded-full border px-2 py-1 text-xs font-bold ${getAvailabilityClass(product.availability)}`}>
+                          {getAvailabilityLabel(product.availability)}
+                        </span>
+                        <span className={`rounded-full border px-2 py-1 text-xs font-bold ${
+                          product.isPublished
+                            ? "border-green-500/40 bg-green-500/10 text-green-300"
+                            : "border-slate-500/40 bg-slate-500/10 text-slate-300"
+                        }`}>
+                          {product.isPublished ? "Опубликован" : "Черновик"}
+                        </span>
+                      </div>
                       {product.occasions?.length > 0 && (
                         <div className="mt-2 flex flex-wrap gap-2">
                           {product.occasions.map((occasion) => (
@@ -500,6 +555,43 @@ export default function AdminPanelPage() {
                   </button>
                 ))}
               </div>
+            </div>
+
+            <div className="mb-6 grid gap-3 rounded-lg border border-slate-700 bg-slate-800 p-4 lg:grid-cols-[1.4fr_0.8fr_0.8fr_1fr]">
+              <label className="relative">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-sky" />
+                <input
+                  value={orderSearch}
+                  onChange={(event) => setOrderSearch(event.target.value)}
+                  placeholder="Поиск: телефон, имя, email, адрес, номер заказа"
+                  className="w-full rounded border border-slate-600 bg-slate-700 py-3 pl-10 pr-4 text-white-alt outline-none focus:border-sky"
+                />
+              </label>
+              <input
+                type="date"
+                value={orderDateFrom}
+                onChange={(event) => setOrderDateFrom(event.target.value)}
+                className="rounded border border-slate-600 bg-slate-700 px-4 py-3 text-white-alt outline-none focus:border-sky"
+                title="Дата доставки с"
+              />
+              <input
+                type="date"
+                value={orderDateTo}
+                onChange={(event) => setOrderDateTo(event.target.value)}
+                className="rounded border border-slate-600 bg-slate-700 px-4 py-3 text-white-alt outline-none focus:border-sky"
+                title="Дата доставки по"
+              />
+              <select
+                value={orderSort}
+                onChange={(event) => setOrderSort(event.target.value as typeof orderSort)}
+                className="rounded border border-slate-600 bg-slate-700 px-4 py-3 text-white-alt outline-none focus:border-sky"
+              >
+                <option value="newest">Сначала новые</option>
+                <option value="oldest">Сначала старые</option>
+                <option value="deliveryDate">По дате доставки</option>
+                <option value="totalHigh">Сначала дорогие</option>
+                <option value="totalLow">Сначала дешёвые</option>
+              </select>
             </div>
 
             {ordersError && (

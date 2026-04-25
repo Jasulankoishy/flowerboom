@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { useCartStore, useThemeStore } from "../stores";
 import type { Product } from "../types";
 import { getProductPath } from "../utils/productLinks";
+import { canOrderProduct, getAvailabilityClass, getAvailabilityLabel } from "../constants/products";
 
 interface ProductCardProps {
   product: Product;
@@ -15,6 +16,7 @@ interface ProductCardProps {
 export default function ProductCard({ product, delay, onQuickOrder, onShowReviews }: ProductCardProps) {
   const { isDark } = useThemeStore();
   const addItem = useCartStore((state) => state.addItem);
+  const canOrder = canOrderProduct(product);
 
   return (
     <motion.div
@@ -64,6 +66,9 @@ export default function ProductCard({ product, delay, onQuickOrder, onShowReview
       </motion.div>
 
       <div className="mt-6 w-full space-y-4">
+        <span className={`inline-flex rounded-full border px-3 py-1 text-xs font-black uppercase tracking-widest ${getAvailabilityClass(product.availability)}`}>
+          {getAvailabilityLabel(product.availability)}
+        </span>
         <div className="flex items-start justify-between gap-3">
           <Link
             to={getProductPath(product)}
@@ -79,14 +84,16 @@ export default function ProductCard({ product, delay, onQuickOrder, onShowReview
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <button
             onClick={() => addItem(product)}
-            className="flex items-center justify-center gap-2 rounded border border-sky/40 py-4 text-xs font-bold uppercase tracking-widest text-sky transition-all hover:bg-sky hover:text-ink"
+            disabled={!canOrder}
+            className="flex items-center justify-center gap-2 rounded border border-sky/40 py-4 text-xs font-bold uppercase tracking-widest text-sky transition-all hover:bg-sky hover:text-ink disabled:cursor-not-allowed disabled:border-slate-700 disabled:text-slate-500 disabled:hover:bg-transparent"
           >
             <ShoppingBag className="h-4 w-4" />
-            В корзину
+            {canOrder ? "В корзину" : "Недоступно"}
           </button>
           <button
             onClick={() => onQuickOrder(product)}
-            className="flex items-center justify-center gap-2 rounded bg-sky py-4 text-xs font-bold uppercase tracking-widest text-ink transition-all hover:brightness-110 active:scale-[0.98]"
+            disabled={!canOrder}
+            className="flex items-center justify-center gap-2 rounded bg-sky py-4 text-xs font-bold uppercase tracking-widest text-ink transition-all hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-500 disabled:hover:brightness-100"
           >
             <Zap className="h-4 w-4" />
             <motion.span

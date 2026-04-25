@@ -4,6 +4,7 @@ import { ArrowDown, Sparkles, Zap } from "lucide-react";
 import { showcaseApi } from "../api";
 import type { Product, ShowcaseSlide } from "../types";
 import HeroSection from "./HeroSection";
+import { canOrderProduct, getAvailabilityClass, getAvailabilityLabel } from "../constants/products";
 
 interface ProHeroShowcaseProps {
   onQuickOrder: (product: Product) => void;
@@ -45,6 +46,7 @@ export default function ProHeroShowcase({ onQuickOrder }: ProHeroShowcaseProps) 
 
   const activeSlide = slides[activeIndex];
   const product = activeSlide.product;
+  const canOrder = canOrderProduct(product);
 
   return (
     <section className="relative mb-14 overflow-hidden rounded-3xl border border-sky/20 bg-[#050505] px-4 py-6 shadow-2xl shadow-black/40 sm:px-6 md:mb-24 md:rounded-[2rem] md:px-10 md:py-12">
@@ -94,12 +96,16 @@ export default function ProHeroShowcase({ onQuickOrder }: ProHeroShowcaseProps) 
                 <div className="rounded-2xl border border-sky/30 bg-sky/10 px-4 py-3 text-xl font-black text-sky sm:px-5 sm:text-2xl">
                   {product.price}
                 </div>
+                <div className={`rounded-2xl border px-4 py-3 text-xs font-black uppercase tracking-widest ${getAvailabilityClass(product.availability)}`}>
+                  {getAvailabilityLabel(product.availability)}
+                </div>
                 <button
                   onClick={() => onQuickOrder(product)}
-                  className="inline-flex items-center justify-center gap-3 rounded-2xl bg-sky px-5 py-4 text-xs font-black uppercase tracking-widest text-ink shadow-lg shadow-sky/20 transition-all hover:-translate-y-0.5 hover:brightness-110 active:scale-[0.98] sm:px-6 sm:text-sm"
+                  disabled={!canOrder}
+                  className="inline-flex items-center justify-center gap-3 rounded-2xl bg-sky px-5 py-4 text-xs font-black uppercase tracking-widest text-ink shadow-lg shadow-sky/20 transition-all hover:-translate-y-0.5 hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-500 disabled:hover:translate-y-0 disabled:hover:brightness-100 sm:px-6 sm:text-sm"
                 >
                   <Zap className="h-5 w-5" />
-                  Заказать
+                  {canOrder ? "Заказать" : "Нет в наличии"}
                 </button>
                 <button
                   onClick={() => document.getElementById("catalog")?.scrollIntoView({ behavior: "smooth" })}

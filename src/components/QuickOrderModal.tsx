@@ -5,6 +5,7 @@ import { useAuthStore } from "../stores";
 import { ordersApi } from "../api/orders";
 import type { Product, CreateOrderDto } from "../types";
 import { useNavigate } from "react-router-dom";
+import { canOrderProduct, getAvailabilityClass, getAvailabilityLabel } from "../constants/products";
 
 interface QuickOrderModalProps {
   product: Product;
@@ -44,6 +45,7 @@ export default function QuickOrderModal({ product, onClose }: QuickOrderModalPro
 
   const priceValue = Number.parseFloat(product.price.replace(/\s/g, "").replace(",", ".").replace(/[^\d.]/g, ""));
   const totalPrice = ((Number.isFinite(priceValue) ? priceValue : 0) * quantity).toFixed(2);
+  const canOrder = canOrderProduct(product);
 
   // Format phone number on input
   const handlePhoneInput = (value: string) => {
@@ -130,6 +132,11 @@ export default function QuickOrderModal({ product, onClose }: QuickOrderModalPro
 
     setError("");
     setSuccessMessage("");
+
+    if (!canOrder) {
+      setError("Этот букет сейчас нельзя заказать");
+      return;
+    }
 
     if (!validateForm()) {
       return;
@@ -257,7 +264,12 @@ export default function QuickOrderModal({ product, onClose }: QuickOrderModalPro
           />
           <div className="flex-1">
             <h3 className="text-lg font-bold text-white-alt">{product.title}</h3>
-            <p className="text-sky font-bold mb-4">{product.price}</p>
+            <div className="mb-4 mt-2 flex flex-wrap items-center gap-2">
+              <p className="text-sky font-bold">{product.price}</p>
+              <span className={`rounded-full border px-2 py-1 text-[10px] font-black uppercase ${getAvailabilityClass(product.availability)}`}>
+                {getAvailabilityLabel(product.availability)}
+              </span>
+            </div>
 
             {/* Quantity control */}
             <div className="flex flex-wrap items-center gap-3">
@@ -439,10 +451,10 @@ export default function QuickOrderModal({ product, onClose }: QuickOrderModalPro
           <div className="flex flex-col gap-3 pt-4 sm:flex-row">
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !canOrder}
               className="flex-1 px-6 py-3 bg-sky text-ink font-bold rounded hover:brightness-110 disabled:opacity-50 transition-all"
             >
-              {loading ? "Оформление..." : "Оформить заказ"}
+              {!canOrder ? "Сейчас недоступно" : loading ? "Оформление..." : "Оформить заказ"}
             </button>
             <button
               type="button"

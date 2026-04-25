@@ -7,6 +7,8 @@ export interface Product {
   price: string; // Строка в API ("4500"), не number!
   description: string;
   occasions: string[];
+  isPublished: boolean;
+  availability: "in_stock" | "out_of_stock" | "preorder";
 }
 
 export interface ShowcaseSlide {
@@ -37,6 +39,7 @@ export interface CartItem {
   price: string;
   image: string;
   quantity: number;
+  availability?: Product["availability"];
 }
 
 export interface User {

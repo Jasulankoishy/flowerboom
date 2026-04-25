@@ -2,14 +2,14 @@ import { useEffect } from "react";
 import { productsApi } from "../api";
 import { useProductsStore } from "../stores";
 
-export const useProducts = () => {
+export const useProducts = (includeAdminProducts = false) => {
   const { products, loading, error, setProducts, setLoading, setError } = useProductsStore();
 
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
       try {
-        const data = await productsApi.getAll();
+        const data = includeAdminProducts ? await productsApi.getAllAdmin() : await productsApi.getAll();
         setProducts(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to fetch products");
@@ -18,15 +18,15 @@ export const useProducts = () => {
       }
     };
 
-    if (products.length === 0) {
+    if (includeAdminProducts || products.length === 0 || products.some((product) => product.isPublished === false)) {
       fetchProducts();
     }
-  }, []);
+  }, [includeAdminProducts]);
 
   const refetch = async () => {
     setLoading(true);
     try {
-      const data = await productsApi.getAll();
+      const data = includeAdminProducts ? await productsApi.getAllAdmin() : await productsApi.getAll();
       setProducts(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to fetch products");
@@ -44,6 +44,8 @@ export const useProducts = () => {
       formData.append("imageUrl", data.image);
       formData.append("description", data.description);
       formData.append("occasions", (data.occasions || []).join(","));
+      formData.append("isPublished", String(data.isPublished ?? true));
+      formData.append("availability", data.availability || "in_stock");
       await productsApi.create(formData);
       await refetch();
     } catch (err) {
@@ -62,6 +64,8 @@ export const useProducts = () => {
       formData.append("imageUrl", data.image);
       formData.append("description", data.description);
       formData.append("occasions", (data.occasions || []).join(","));
+      formData.append("isPublished", String(data.isPublished ?? true));
+      formData.append("availability", data.availability || "in_stock");
       await productsApi.update(id, formData);
       await refetch();
     } catch (err) {

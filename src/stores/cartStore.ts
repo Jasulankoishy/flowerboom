@@ -8,6 +8,7 @@ interface CartItem {
   price: string;
   image: string;
   quantity: number;
+  availability?: Product["availability"];
 }
 
 interface CartState {
@@ -26,13 +27,15 @@ export const useCartStore = create<CartState>()(
       items: [],
 
       addItem: (product: Product) => {
+        if (product.availability === "out_of_stock") return;
+
         set((state) => {
           const existingItem = state.items.find((item) => item.productId === product.id);
           if (existingItem) {
             return {
               items: state.items.map((item) =>
                 item.productId === product.id
-                  ? { ...item, price: product.price, image: product.image, quantity: item.quantity + 1 }
+                  ? { ...item, price: product.price, image: product.image, availability: product.availability, quantity: item.quantity + 1 }
                   : item
               ),
             };
@@ -46,6 +49,7 @@ export const useCartStore = create<CartState>()(
                 price: product.price,
                 image: product.image,
                 quantity: 1,
+                availability: product.availability,
               },
             ],
           };

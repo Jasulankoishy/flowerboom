@@ -7,6 +7,10 @@ export const productsApi = {
     return apiRequest<Product[]>(`${API_URL}${API_ENDPOINTS.products}`);
   },
 
+  async getAllAdmin(): Promise<Product[]> {
+    return apiRequest<Product[]>(`${API_URL}${API_ENDPOINTS.adminProducts}`);
+  },
+
   async getById(id: string): Promise<Product> {
     return apiRequest<Product>(`${API_URL}${API_ENDPOINTS.product(id)}`);
   },

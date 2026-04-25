@@ -69,6 +69,15 @@ export interface AdminStats {
   totalRevenue: string;
 }
 
+export interface AdminOrderFilters {
+  status?: string;
+  q?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  sortBy?: "newest" | "oldest" | "deliveryDate" | "totalHigh" | "totalLow";
+  sortDir?: "asc" | "desc";
+}
+
 export const ordersApi = {
   async create(data: CreateOrderData): Promise<Order> {
     return apiRequest<Order>(`${API_URL}${API_ENDPOINTS.orders}`, {
@@ -85,9 +94,19 @@ export const ordersApi = {
     return apiRequest<Order>(`${API_URL}${API_ENDPOINTS.order(id)}`);
   },
 
-  async getAllOrders(status?: string): Promise<Order[]> {
-    const url = status
-      ? `${API_URL}${API_ENDPOINTS.adminOrders}?status=${status}`
+  async getAllOrders(filters?: string | AdminOrderFilters): Promise<Order[]> {
+    const params = new URLSearchParams();
+    const normalizedFilters = typeof filters === "string" ? { status: filters } : filters;
+
+    if (normalizedFilters) {
+      Object.entries(normalizedFilters).forEach(([key, value]) => {
+        if (value && value !== "all") params.set(key, value);
+      });
+    }
+
+    const query = params.toString();
+    const url = query
+      ? `${API_URL}${API_ENDPOINTS.adminOrders}?${query}`
       : `${API_URL}${API_ENDPOINTS.adminOrders}`;
     return apiRequest<Order[]>(url);
   },

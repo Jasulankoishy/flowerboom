@@ -32,7 +32,7 @@ const sendDownload = (res, { filename, contentType, body }) => {
 };
 
 const productsToCsv = (products) => {
-  const headers = ['id', 'index', 'slug', 'title', 'price', 'description', 'occasions', 'image', 'createdAt', 'updatedAt'];
+  const headers = ['id', 'index', 'slug', 'title', 'price', 'description', 'occasions', 'isPublished', 'availability', 'image', 'createdAt', 'updatedAt'];
   const rows = products.map((product) => [
     product.id,
     product.index,
@@ -41,6 +41,8 @@ const productsToCsv = (products) => {
     product.price,
     product.description,
     product.occasions,
+    product.isPublished,
+    product.availability,
     product.image,
     product.createdAt?.toISOString?.() || product.createdAt,
     product.updatedAt?.toISOString?.() || product.updatedAt

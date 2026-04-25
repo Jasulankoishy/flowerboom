@@ -89,7 +89,7 @@ router.get('/product/:idOrSlug', async (req, res) => {
       where: isUuid(idOrSlug) ? { id: idOrSlug } : { slug: idOrSlug }
     });
 
-    if (!product) {
+    if (!product || !product.isPublished) {
       res.status(404).type('html').send(renderNotFoundHtml());
       return;
     }

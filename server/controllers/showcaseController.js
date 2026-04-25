@@ -57,7 +57,10 @@ const validatePayload = async (payload) => {
 export const getPublicShowcase = async (req, res) => {
   try {
     const slides = await prisma.showcaseSlide.findMany({
-      where: { isActive: true },
+      where: {
+        isActive: true,
+        product: { isPublished: true }
+      },
       include: includeProduct,
       orderBy: orderByShowcase
     });

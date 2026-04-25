@@ -40,6 +40,8 @@ model Product {
   price       String // Храним как строку для совместимости с фронтом
   description String
   occasions   String[]    @default([])
+  isPublished Boolean     @default(true)
+  availability String     @default("in_stock")
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
   reviews     Review[]

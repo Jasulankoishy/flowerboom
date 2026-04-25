@@ -12,6 +12,17 @@ const CYRILLIC_MAP = {
 };
 
 const isUuid = (value) => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+const PRODUCT_AVAILABILITY = ['in_stock', 'out_of_stock', 'preorder'];
+
+const normalizeBoolean = (value, fallback = true) => {
+  if (value === undefined || value === null || value === '') return fallback;
+  if (typeof value === 'boolean') return value;
+  return ['true', '1', 'yes', 'on'].includes(String(value).toLowerCase());
+};
+
+const normalizeAvailability = (value, fallback = 'in_stock') => {
+  return PRODUCT_AVAILABILITY.includes(value) ? value : fallback;
+};
 
 const slugify = (value) => {
   const transliterated = String(value || '')
@@ -45,11 +56,25 @@ const buildUniqueSlug = async (title, fallback, excludeId) => {
 export const getAllProducts = async (req, res) => {
   try {
     const products = await prisma.product.findMany({
+      where: { isPublished: true },
       orderBy: { createdAt: 'asc' }
     });
     res.json(products);
   } catch (error) {
     console.error('Get products error:', error);
+    res.status(500).json({ message: 'Failed to fetch products' });
+  }
+};
+
+// Get all products for admin, including drafts and unavailable items
+export const getAdminProducts = async (req, res) => {
+  try {
+    const products = await prisma.product.findMany({
+      orderBy: { createdAt: 'asc' }
+    });
+    res.json(products);
+  } catch (error) {
+    console.error('Get admin products error:', error);
     res.status(500).json({ message: 'Failed to fetch products' });
   }
 };
@@ -64,7 +89,7 @@ export const getProductById = async (req, res) => {
       include: { reviews: true }
     });
 
-    if (!product) {
+    if (!product || !product.isPublished) {
       return res.status(404).json({ message: 'Product not found' });
     }
 
@@ -77,7 +102,16 @@ export const getProductById = async (req, res) => {
 
 // Create product
 export const createProduct = async (req, res) => {
-  const { title, price, description, imageUrl, image: bodyImage, occasions: rawOccasions } = req.body;
+  const {
+    title,
+    price,
+    description,
+    imageUrl,
+    image: bodyImage,
+    occasions: rawOccasions,
+    isPublished: rawIsPublished,
+    availability: rawAvailability
+  } = req.body;
 
   try {
     // Get next index
@@ -100,7 +134,9 @@ export const createProduct = async (req, res) => {
         price,
         description,
         image,
-        occasions
+        occasions,
+        isPublished: normalizeBoolean(rawIsPublished, true),
+        availability: normalizeAvailability(rawAvailability)
       }
     });
 
@@ -114,7 +150,16 @@ export const createProduct = async (req, res) => {
 // Update product
 export const updateProduct = async (req, res) => {
   const { id } = req.params;
-  const { title, price, description, imageUrl, image: bodyImage, occasions: rawOccasions } = req.body;
+  const {
+    title,
+    price,
+    description,
+    imageUrl,
+    image: bodyImage,
+    occasions: rawOccasions,
+    isPublished: rawIsPublished,
+    availability: rawAvailability
+  } = req.body;
 
   try {
     const product = await prisma.product.findUnique({ where: { id } });
@@ -137,7 +182,9 @@ export const updateProduct = async (req, res) => {
         price: price || product.price,
         description: description || product.description,
         image,
-        occasions
+        occasions,
+        isPublished: normalizeBoolean(rawIsPublished, product.isPublished),
+        availability: normalizeAvailability(rawAvailability, product.availability)
       }
     });
 

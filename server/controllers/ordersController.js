@@ -106,14 +106,20 @@ export const createOrder = async (req, res) => {
     if (!deliveryTime) {
       return res.status(400).json({ error: 'Delivery time is required' });
     }
-    // Verify all products exist
+    // Verify all products exist and can be ordered
     const productIds = items.map(item => item.productId);
+    const uniqueProductIds = [...new Set(productIds)];
     const products = await prisma.product.findMany({
-      where: { id: { in: productIds } }
+      where: { id: { in: uniqueProductIds } }
     });
 
-    if (products.length !== productIds.length) {
+    if (products.length !== uniqueProductIds.length) {
       return res.status(400).json({ error: 'Some products not found' });
+    }
+
+    const unavailableProduct = products.find(product => !product.isPublished || product.availability === 'out_of_stock');
+    if (unavailableProduct) {
+      return res.status(400).json({ error: `Товар "${unavailableProduct.title}" сейчас недоступен для заказа` });
     }
 
     const productMap = new Map(products.map(product => [product.id, product]));
@@ -298,12 +304,52 @@ export const getOrder = async (req, res) => {
 
 // Get all orders (admin only)
 export const getAllOrders = async (req, res) => {
-  const { status } = req.query;
+  const { status, q, dateFrom, dateTo, sortBy = 'newest', sortDir = 'desc' } = req.query;
 
   try {
-    const where = status ? { status } : {};
+    const cleanStatus = status && status !== 'all' ? String(status) : '';
+    const cleanQuery = String(q || '').trim();
+    const where = {};
 
-    const orders = await prisma.order.findMany({
+    if (cleanStatus) {
+      where.status = cleanStatus;
+    }
+
+    if (dateFrom || dateTo) {
+      where.deliveryDate = {
+        ...(dateFrom ? { gte: String(dateFrom) } : {}),
+        ...(dateTo ? { lte: String(dateTo) } : {})
+      };
+    }
+
+    if (cleanQuery) {
+      where.OR = [
+        { id: { contains: cleanQuery, mode: 'insensitive' } },
+        { phone: { contains: cleanQuery, mode: 'insensitive' } },
+        { city: { contains: cleanQuery, mode: 'insensitive' } },
+        { street: { contains: cleanQuery, mode: 'insensitive' } },
+        { house: { contains: cleanQuery, mode: 'insensitive' } },
+        { apartment: { contains: cleanQuery, mode: 'insensitive' } },
+        {
+          user: {
+            is: {
+              OR: [
+                { name: { contains: cleanQuery, mode: 'insensitive' } },
+                { email: { contains: cleanQuery, mode: 'insensitive' } }
+              ]
+            }
+          }
+        }
+      ];
+    }
+
+    const orderBy = sortBy === 'oldest'
+      ? { createdAt: 'asc' }
+      : sortBy === 'deliveryDate'
+        ? { deliveryDate: sortDir === 'asc' ? 'asc' : 'desc' }
+        : { createdAt: 'desc' };
+
+    let orders = await prisma.order.findMany({
       where,
       include: {
         items: {
@@ -320,8 +366,16 @@ export const getAllOrders = async (req, res) => {
           }
         }
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy
     });
+
+    if (sortBy === 'totalHigh' || sortBy === 'totalLow') {
+      orders = orders.sort((a, b) => {
+        const left = parsePrice(a.totalPrice);
+        const right = parsePrice(b.totalPrice);
+        return sortBy === 'totalHigh' ? right - left : left - right;
+      });
+    }
 
     res.json(orders);
   } catch (error) {

@@ -13,6 +13,7 @@ export const API_ENDPOINTS = {
 
   // Products
   products: "/api/products",
+  adminProducts: "/api/products/admin/all",
   product: (id: string) => `/api/products/${id}`,
 
   // Reviews

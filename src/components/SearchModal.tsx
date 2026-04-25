@@ -3,6 +3,7 @@ import { motion } from "motion/react";
 import { Search, ShoppingBag, X } from "lucide-react";
 import { useProducts } from "../hooks";
 import { useCartStore } from "../stores";
+import { canOrderProduct, getAvailabilityClass, getAvailabilityLabel } from "../constants/products";
 
 interface SearchModalProps {
   isOpen: boolean;
@@ -80,11 +81,17 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
                 <div className="min-w-0">
                   <h3 className="truncate font-bold text-white-alt">{product.title}</h3>
                   <p className="truncate text-sm text-slate-400">{product.description}</p>
-                  <p className="mt-1 text-sm font-black text-sky">{product.price}</p>
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <p className="text-sm font-black text-sky">{product.price}</p>
+                    <span className={`rounded-full border px-2 py-0.5 text-[10px] font-black uppercase ${getAvailabilityClass(product.availability)}`}>
+                      {getAvailabilityLabel(product.availability)}
+                    </span>
+                  </div>
                 </div>
                 <button
                   onClick={() => addItem(product)}
-                  className="col-span-2 rounded border border-sky/40 p-3 text-sky transition-all hover:bg-sky hover:text-ink sm:col-auto"
+                  disabled={!canOrderProduct(product)}
+                  className="col-span-2 rounded border border-sky/40 p-3 text-sky transition-all hover:bg-sky hover:text-ink disabled:cursor-not-allowed disabled:border-slate-700 disabled:text-slate-500 disabled:hover:bg-transparent sm:col-auto"
                   aria-label="Добавить в корзину"
                 >
                   <ShoppingBag className="h-5 w-5" />
