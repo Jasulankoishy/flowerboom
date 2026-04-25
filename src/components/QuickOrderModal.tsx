@@ -79,11 +79,11 @@ export default function QuickOrderModal({ product, onClose }: QuickOrderModalPro
     }
   };
 
-  // Get minimum delivery date (tomorrow)
+  // Get minimum delivery date (today)
   const getMinDate = () => {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    return tomorrow.toISOString().split("T")[0];
+    const today = new Date();
+    today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
+    return today.toISOString().split("T")[0];
   };
 
   // Validate form

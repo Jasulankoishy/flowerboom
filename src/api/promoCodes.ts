@@ -8,6 +8,8 @@ export interface PromoCode {
   value: number;
   isActive: boolean;
   expiresAt?: string | null;
+  maxUses?: number | null;
+  usedCount: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -18,12 +20,15 @@ export interface PromoCodeInput {
   value: number;
   isActive: boolean;
   expiresAt?: string | null;
+  maxUses?: number | null;
 }
 
 export interface PromoValidationResult {
   code: string;
   type: "percent" | "fixed";
   value: number;
+  maxUses?: number | null;
+  usedCount?: number;
   originalTotal: string;
   discountAmount: string;
   totalPrice: string;

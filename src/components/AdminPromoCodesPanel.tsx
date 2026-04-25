@@ -9,6 +9,21 @@ const emptyForm: PromoCodeInput = {
   value: 10,
   isActive: true,
   expiresAt: "",
+  maxUses: null,
+};
+
+const toDateTimeLocal = (value?: string | null) => {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
+  return date.toISOString().slice(0, 16);
+};
+
+const toIsoDateTime = (value?: string | null) => {
+  if (!value) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date.toISOString();
 };
 
 export default function AdminPromoCodesPanel() {
@@ -50,7 +65,8 @@ export default function AdminPromoCodesPanel() {
         ...form,
         code: form.code.trim().toUpperCase(),
         value: Number(form.value),
-        expiresAt: form.expiresAt || null,
+        expiresAt: toIsoDateTime(form.expiresAt),
+        maxUses: form.maxUses === null || form.maxUses === undefined ? null : Number(form.maxUses),
       };
 
       if (editingPromoCode) {
@@ -74,7 +90,8 @@ export default function AdminPromoCodesPanel() {
       type: promoCode.type,
       value: promoCode.value,
       isActive: promoCode.isActive,
-      expiresAt: promoCode.expiresAt ? promoCode.expiresAt.slice(0, 10) : "",
+      expiresAt: toDateTimeLocal(promoCode.expiresAt),
+      maxUses: promoCode.maxUses ?? null,
     });
     setShowForm(true);
   };
@@ -92,6 +109,21 @@ export default function AdminPromoCodesPanel() {
 
   const formatDiscount = (promoCode: PromoCode) => {
     return promoCode.type === "percent" ? `${promoCode.value}%` : `${promoCode.value.toFixed(0)}₽`;
+  };
+
+  const formatExpiresAt = (value?: string | null) => {
+    if (!value) return "Без срока окончания";
+    return `До ${new Date(value).toLocaleString("ru-RU", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    })}`;
+  };
+
+  const formatUsage = (promoCode: PromoCode) => {
+    return promoCode.maxUses ? `Использовано ${promoCode.usedCount} / ${promoCode.maxUses}` : `Использовано ${promoCode.usedCount} · без лимита`;
   };
 
   return (
@@ -157,11 +189,26 @@ export default function AdminPromoCodesPanel() {
                 required
               />
               <input
-                type="date"
+                type="datetime-local"
                 value={form.expiresAt || ""}
                 onChange={(event) => setForm((current) => ({ ...current, expiresAt: event.target.value }))}
                 className="w-full rounded border border-slate-600 bg-slate-700 px-4 py-3 text-white-alt outline-none focus:border-sky"
               />
+            </div>
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-300">Лимит использований</label>
+              <input
+                type="number"
+                min="1"
+                value={form.maxUses ?? ""}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  setForm((current) => ({ ...current, maxUses: value ? Number(value) : null }));
+                }}
+                placeholder="Без лимита"
+                className="w-full rounded border border-slate-600 bg-slate-700 px-4 py-3 text-white-alt outline-none focus:border-sky"
+              />
+              <p className="mt-1 text-xs text-slate-500">Оставьте пустым, если промокод можно использовать без лимита.</p>
             </div>
             <label className="flex items-center gap-3 text-sm font-medium text-slate-300">
               <input
@@ -215,7 +262,10 @@ export default function AdminPromoCodesPanel() {
                 </div>
                 <p className="mt-1 text-sky font-bold">Скидка: {formatDiscount(promoCode)}</p>
                 <p className="text-sm text-slate-400">
-                  {promoCode.expiresAt ? `До ${new Date(promoCode.expiresAt).toLocaleDateString("ru-RU")}` : "Без срока окончания"}
+                  {formatExpiresAt(promoCode.expiresAt)}
+                </p>
+                <p className="text-sm text-slate-400">
+                  {formatUsage(promoCode)}
                 </p>
               </div>
               <div className="flex gap-2 sm:shrink-0">

@@ -11,6 +11,20 @@ const parsePrice = (value) => {
 const ACTIVE_REVENUE_STATUSES = ['pending', 'accepted', 'confirmed', 'preparing', 'delivering', 'delivered'];
 const VALID_ORDER_STATUSES = ['pending', 'accepted', 'confirmed', 'preparing', 'delivering', 'delivered', 'cancelled'];
 
+const getTodayDateString = () => {
+  const parts = new Intl.DateTimeFormat('en', {
+    timeZone: 'Asia/Qyzylorda',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).formatToParts(new Date());
+
+  const byType = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return `${byType.year}-${byType.month}-${byType.day}`;
+};
+
+const createClientError = (message) => Object.assign(new Error(message), { statusCode: 400 });
+
 // Create order
 export const createOrder = async (req, res) => {
   const {
@@ -48,14 +62,12 @@ export const createOrder = async (req, res) => {
       return res.status(400).json({ error: 'Delivery date is required' });
     }
 
-    // Check delivery date is not in the past (tomorrow or later)
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    tomorrow.setHours(0, 0, 0, 0);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(deliveryDate)) {
+      return res.status(400).json({ error: 'Delivery date must be in YYYY-MM-DD format' });
+    }
 
-    const selectedDate = new Date(deliveryDate);
-    if (selectedDate < tomorrow) {
-      return res.status(400).json({ error: 'Delivery date must be tomorrow or later' });
+    if (deliveryDate < getTodayDateString()) {
+      return res.status(400).json({ error: 'Delivery date cannot be in the past' });
     }
 
     if (!deliveryTime) {
@@ -93,57 +105,98 @@ export const createOrder = async (req, res) => {
     }
 
     const originalTotal = normalizedItems.reduce((sum, item) => sum + item.lineTotal, 0);
-    const promoResult = await applyPromoCode(rawPromoCode, originalTotal);
-    const appliedPromoCode = promoResult.promoCode ? normalizePromoCode(rawPromoCode) : null;
-    const computedTotal = promoResult.finalTotal.toFixed(2);
     const cleanGiftMessage = giftCardEnabled ? String(giftMessage || '').trim().slice(0, 300) : null;
+    const normalizedPromoCode = normalizePromoCode(rawPromoCode);
 
-    // Create order with items
-    const order = await prisma.order.create({
-      data: {
-        userId: req.user.userId,
-        city: city.trim(),
-        street: street.trim(),
-        house: house.trim(),
-        apartment: apartment?.trim() || null,
-        phone: phone.trim(),
-        deliveryDate,
-        deliveryTime,
-        originalTotalPrice: originalTotal.toFixed(2),
-        discountAmount: promoResult.discount.toFixed(2),
-        promoCode: appliedPromoCode,
-        totalPrice: computedTotal,
-        giftCardEnabled: Boolean(giftCardEnabled),
-        giftMessage: cleanGiftMessage,
-        status: 'pending',
-        items: {
-          create: normalizedItems.map(item => ({
-            productId: item.productId,
-            quantity: item.quantity,
-            price: item.price
-          }))
-        }
-      },
-      include: {
-        items: {
-          include: {
-            product: true
+    const order = await prisma.$transaction(async (tx) => {
+      const promoResult = await applyPromoCode(rawPromoCode, originalTotal, tx);
+
+      if (normalizedPromoCode && !promoResult.promoCode) {
+        throw createClientError(
+          promoResult.reason === 'limit_reached'
+            ? 'Лимит использований промокода закончился'
+            : 'Промокод не найден, выключен или истёк'
+        );
+      }
+
+      const createdOrder = await tx.order.create({
+        data: {
+          userId: req.user.userId,
+          city: city.trim(),
+          street: street.trim(),
+          house: house.trim(),
+          apartment: apartment?.trim() || null,
+          phone: phone.trim(),
+          deliveryDate,
+          deliveryTime,
+          originalTotalPrice: originalTotal.toFixed(2),
+          discountAmount: promoResult.discount.toFixed(2),
+          promoCode: promoResult.promoCode ? normalizedPromoCode : null,
+          totalPrice: promoResult.finalTotal.toFixed(2),
+          giftCardEnabled: Boolean(giftCardEnabled),
+          giftMessage: cleanGiftMessage,
+          status: 'pending',
+          items: {
+            create: normalizedItems.map(item => ({
+              productId: item.productId,
+              quantity: item.quantity,
+              price: item.price
+            }))
           }
         },
-        user: {
-          select: {
-            id: true,
-            email: true,
-            name: true,
-            avatar: true
+        include: {
+          items: {
+            include: {
+              product: true
+            }
+          },
+          user: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              avatar: true
+            }
           }
         }
+      });
+
+      if (promoResult.promoCode) {
+        const limitGuard = promoResult.promoCode.maxUses === null || promoResult.promoCode.maxUses === undefined
+          ? {}
+          : {
+              OR: [
+                { maxUses: null },
+                { usedCount: { lt: promoResult.promoCode.maxUses } }
+              ]
+            };
+
+        const promoUpdate = await tx.promoCode.updateMany({
+          where: {
+            id: promoResult.promoCode.id,
+            ...limitGuard
+          },
+          data: {
+            usedCount: {
+              increment: 1
+            }
+          }
+        });
+
+        if (promoUpdate.count !== 1) {
+          throw createClientError('Лимит использований промокода закончился');
+        }
       }
+
+      return createdOrder;
     });
 
     notifyNewOrder(order);
     res.status(201).json(order);
   } catch (error) {
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({ error: error.message });
+    }
     console.error('Create order error:', error);
     await notifyEmergency('Ошибка создания заказа', error.message || 'Failed to create order');
     res.status(500).json({ error: 'Failed to create order' });

@@ -8,18 +8,22 @@ export const parseMoney = (value) => {
   return Number.isFinite(money) ? money : 0;
 };
 
-export const findUsablePromoCode = async (code) => {
+export const findUsablePromoCode = async (code, db = prisma) => {
   const normalizedCode = normalizePromoCode(code);
-  if (!normalizedCode) return null;
+  if (!normalizedCode) return { promoCode: null, reason: 'empty' };
 
-  const promoCode = await prisma.promoCode.findUnique({
+  const promoCode = await db.promoCode.findUnique({
     where: { code: normalizedCode }
   });
 
-  if (!promoCode || !promoCode.isActive) return null;
-  if (promoCode.expiresAt && promoCode.expiresAt < new Date()) return null;
+  if (!promoCode) return { promoCode: null, reason: 'not_found' };
+  if (!promoCode.isActive) return { promoCode: null, reason: 'inactive' };
+  if (promoCode.expiresAt && promoCode.expiresAt < new Date()) return { promoCode: null, reason: 'expired' };
+  if (promoCode.maxUses !== null && promoCode.maxUses !== undefined && promoCode.usedCount >= promoCode.maxUses) {
+    return { promoCode: null, reason: 'limit_reached' };
+  }
 
-  return promoCode;
+  return { promoCode, reason: null };
 };
 
 export const calculateDiscount = (promoCode, originalTotal) => {
@@ -33,13 +37,14 @@ export const calculateDiscount = (promoCode, originalTotal) => {
   return Math.min(originalTotal, rawDiscount);
 };
 
-export const applyPromoCode = async (code, originalTotal) => {
-  const promoCode = await findUsablePromoCode(code);
+export const applyPromoCode = async (code, originalTotal, db = prisma) => {
+  const { promoCode, reason } = await findUsablePromoCode(code, db);
   const discount = calculateDiscount(promoCode, originalTotal);
   const finalTotal = Math.max(0, originalTotal - discount);
 
   return {
     promoCode,
+    reason,
     discount,
     finalTotal
   };

@@ -8,13 +8,17 @@ const getPayload = (body) => {
   const type = String(body.type || '').trim();
   const value = Number.parseFloat(String(body.value || '0').replace(',', '.'));
   const expiresAt = body.expiresAt ? new Date(body.expiresAt) : null;
+  const maxUsesValue = body.maxUses === '' || body.maxUses === null || body.maxUses === undefined
+    ? null
+    : Number.parseInt(body.maxUses, 10);
 
   return {
     code,
     type,
     value,
     isActive: body.isActive === undefined ? true : Boolean(body.isActive),
-    expiresAt: expiresAt && !Number.isNaN(expiresAt.getTime()) ? expiresAt : null
+    expiresAt: expiresAt && !Number.isNaN(expiresAt.getTime()) ? expiresAt : null,
+    maxUses: Number.isInteger(maxUsesValue) ? maxUsesValue : null
   };
 };
 
@@ -31,7 +35,17 @@ const validatePayload = (payload) => {
   if (payload.type === 'percent' && payload.value > 100) {
     return 'Percent promo code cannot be greater than 100';
   }
+  if (payload.maxUses !== null && payload.maxUses < 1) {
+    return 'Promo code usage limit must be at least 1';
+  }
   return null;
+};
+
+const getPromoErrorMessage = (reason) => {
+  if (reason === 'expired') return 'Промокод истёк';
+  if (reason === 'limit_reached') return 'Лимит использований промокода закончился';
+  if (reason === 'inactive') return 'Промокод выключен';
+  return 'Промокод не найден';
 };
 
 export const validatePromoCode = async (req, res) => {
@@ -46,13 +60,15 @@ export const validatePromoCode = async (req, res) => {
     const result = await applyPromoCode(code, originalTotal);
 
     if (!result.promoCode || result.discount <= 0) {
-      return res.status(404).json({ message: 'Промокод не найден, выключен или истёк' });
+      return res.status(404).json({ message: getPromoErrorMessage(result.reason) });
     }
 
     res.json({
       code: result.promoCode.code,
       type: result.promoCode.type,
       value: result.promoCode.value,
+      maxUses: result.promoCode.maxUses,
+      usedCount: result.promoCode.usedCount,
       originalTotal: originalTotal.toFixed(2),
       discountAmount: result.discount.toFixed(2),
       totalPrice: result.finalTotal.toFixed(2)
