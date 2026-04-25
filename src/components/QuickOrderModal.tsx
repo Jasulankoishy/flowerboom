@@ -1,18 +1,18 @@
 import { useRef, useState } from "react";
 import { motion } from "motion/react";
-import { Gift, X } from "lucide-react";
+import { Gift, MessageCircle, X } from "lucide-react";
 import { useAuthStore } from "../stores";
 import { ordersApi } from "../api/orders";
 import type { Product, CreateOrderDto } from "../types";
 import { useNavigate } from "react-router-dom";
 import { canOrderProduct, getAvailabilityClass, getAvailabilityLabel } from "../constants/products";
+import { getLocalDateString, getMinDeliveryTime, isDeliveryTimeAllowed } from "../utils/deliveryTime";
+import { getProductWhatsappUrl } from "../utils/whatsapp";
 
 interface QuickOrderModalProps {
   product: Product;
   onClose: () => void;
 }
-
-const DELIVERY_TIMES = ["9:00–12:00", "12:00–15:00", "15:00–18:00", "18:00–21:00"];
 
 const createOrderKey = () => {
   return crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -89,9 +89,7 @@ export default function QuickOrderModal({ product, onClose }: QuickOrderModalPro
 
   // Get minimum delivery date (today)
   const getMinDate = () => {
-    const today = new Date();
-    today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
-    return today.toISOString().split("T")[0];
+    return getLocalDateString();
   };
 
   // Validate form
@@ -115,6 +113,8 @@ export default function QuickOrderModal({ product, onClose }: QuickOrderModalPro
     }
     if (!formData.deliveryTime) {
       errors.deliveryTime = "Выберите время доставки";
+    } else if (!isDeliveryTimeAllowed(formData.deliveryDate, formData.deliveryTime)) {
+      errors.deliveryTime = "Выберите время минимум за 2 часа от текущего времени";
     }
     if (giftCardEnabled && giftMessage.trim().length > 300) {
       errors.giftMessage = "Максимум 300 символов";
@@ -247,6 +247,15 @@ export default function QuickOrderModal({ product, onClose }: QuickOrderModalPro
         {/* Header */}
         <div className="mb-6 flex items-center justify-between gap-3">
           <h2 className="text-xl font-bold text-white-alt sm:text-2xl">Быстрый заказ</h2>
+          <a
+            href={getProductWhatsappUrl(product)}
+            target="_blank"
+            rel="noreferrer"
+            className="hidden items-center gap-2 rounded-full border border-green-400/40 bg-green-400/10 px-3 py-2 text-xs font-bold text-green-300 transition hover:bg-green-400 hover:text-ink sm:flex"
+          >
+            <MessageCircle className="h-4 w-4" />
+            WhatsApp
+          </a>
           <button
             onClick={onClose}
             className="p-2 hover:bg-slate-700 rounded-lg transition-all"
@@ -389,7 +398,14 @@ export default function QuickOrderModal({ product, onClose }: QuickOrderModalPro
               type="date"
               min={getMinDate()}
               value={formData.deliveryDate}
-              onChange={(e) => setFormData((prev) => ({ ...prev, deliveryDate: e.target.value }))}
+              onChange={(e) => setFormData((prev) => {
+                const deliveryDate = e.target.value;
+                return {
+                  ...prev,
+                  deliveryDate,
+                  deliveryTime: isDeliveryTimeAllowed(deliveryDate, prev.deliveryTime) ? prev.deliveryTime : "",
+                };
+              })}
               className={`w-full bg-slate-700 border rounded px-4 py-2 text-white-alt placeholder-slate-500 focus:outline-none focus:border-sky transition-all ${
                 fieldErrors.deliveryDate ? "border-red-500" : "border-slate-600"
               }`}
@@ -399,20 +415,18 @@ export default function QuickOrderModal({ product, onClose }: QuickOrderModalPro
 
           {/* Delivery Time */}
           <div>
-            <select
+            <input
+              type="time"
               value={formData.deliveryTime}
               onChange={(e) => setFormData((prev) => ({ ...prev, deliveryTime: e.target.value }))}
+              min={getMinDeliveryTime(formData.deliveryDate)}
               className={`w-full bg-slate-700 border rounded px-4 py-2 text-white-alt focus:outline-none focus:border-sky transition-all ${
                 fieldErrors.deliveryTime ? "border-red-500" : "border-slate-600"
               }`}
-            >
-              <option value="">Выберите время доставки</option>
-              {DELIVERY_TIMES.map((time) => (
-                <option key={time} value={time}>
-                  {time}
-                </option>
-              ))}
-            </select>
+            />
+            <p className="mt-1 text-xs text-slate-500">
+              Сегодня доступно минимум через 2 часа. На будущие даты можно выбрать любое время.
+            </p>
             {fieldErrors.deliveryTime && <p className="text-red-400 text-sm mt-1">{fieldErrors.deliveryTime}</p>}
           </div>
 

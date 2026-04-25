@@ -38,6 +38,30 @@ const getTodayDateString = () => {
   return `${byType.year}-${byType.month}-${byType.day}`;
 };
 
+const getQyzylordaParts = (date = new Date()) => {
+  const parts = new Intl.DateTimeFormat('en', {
+    timeZone: 'Asia/Qyzylorda',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+    hour12: false
+  }).formatToParts(date);
+
+  return Object.fromEntries(parts.map((part) => [part.type, part.value]));
+};
+
+const getMinDeliveryTimeString = () => {
+  const minDate = new Date(Date.now() + 2 * 60 * 60 * 1000);
+  const parts = getQyzylordaParts(minDate);
+  return {
+    date: `${parts.year}-${parts.month}-${parts.day}`,
+    time: `${parts.hour}:${parts.minute}`
+  };
+};
+
 const createClientError = (message) => Object.assign(new Error(message), { statusCode: 400 });
 
 // Create order
@@ -105,6 +129,17 @@ export const createOrder = async (req, res) => {
 
     if (!deliveryTime) {
       return res.status(400).json({ error: 'Delivery time is required' });
+    }
+
+    if (!/^\d{2}:\d{2}$/.test(deliveryTime)) {
+      return res.status(400).json({ error: 'Delivery time must be in HH:MM format' });
+    }
+
+    if (deliveryDate === getTodayDateString()) {
+      const minDelivery = getMinDeliveryTimeString();
+      if (minDelivery.date !== deliveryDate || deliveryTime < minDelivery.time) {
+        return res.status(400).json({ error: 'Delivery time must be at least 2 hours from now' });
+      }
     }
     // Verify all products exist and can be ordered
     const productIds = items.map(item => item.productId);

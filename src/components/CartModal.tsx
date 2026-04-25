@@ -1,17 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
-import { Calendar, Gift, Minus, Plus, ShoppingBag, Trash2, X } from "lucide-react";
+import { Calendar, Gift, MessageCircle, Minus, Plus, ShoppingBag, Trash2, X } from "lucide-react";
 import { ordersApi } from "../api/orders";
 import { promoCodesApi, type PromoValidationResult } from "../api/promoCodes";
 import { useAuthStore, useCartStore } from "../stores";
+import { getLocalDateString, getMinDeliveryTime, isDeliveryTimeAllowed } from "../utils/deliveryTime";
+import { getGeneralWhatsappUrl } from "../utils/whatsapp";
 
 interface CartModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
-
-const DELIVERY_TIMES = ["9:00–12:00", "12:00–15:00", "15:00–18:00", "18:00–21:00"];
 
 const formatMoney = (value: number) => `${value.toFixed(0)}₽`;
 
@@ -53,9 +53,7 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
   if (!isOpen) return null;
 
   const getMinDate = () => {
-    const today = new Date();
-    today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
-    return today.toISOString().split("T")[0];
+    return getLocalDateString();
   };
 
   const handlePhoneInput = (value: string) => {
@@ -92,6 +90,9 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
     if (!/^\+7 \(\d{3}\) \d{3}-\d{2}-\d{2}$/.test(formData.phone)) errors.phone = "Формат: +7 (XXX) XXX-XX-XX";
     if (!formData.deliveryDate) errors.deliveryDate = "Выберите дату доставки";
     if (!formData.deliveryTime) errors.deliveryTime = "Выберите время доставки";
+    else if (!isDeliveryTimeAllowed(formData.deliveryDate, formData.deliveryTime)) {
+      errors.deliveryTime = "Выберите время минимум за 2 часа от текущего времени";
+    }
     if (giftCardEnabled && giftMessage.trim().length > 300) errors.giftMessage = "Максимум 300 символов";
 
     setFieldErrors(errors);
@@ -195,6 +196,15 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
             <p className="text-[10px] uppercase tracking-[0.24em] text-sky sm:text-xs sm:tracking-[0.35em]">Smart checkout</p>
             <h2 className="text-xl font-bold uppercase tracking-tight text-white-alt sm:text-2xl">Корзина</h2>
           </div>
+          <a
+            href={getGeneralWhatsappUrl()}
+            target="_blank"
+            rel="noreferrer"
+            className="hidden items-center gap-2 rounded-full border border-green-400/40 bg-green-400/10 px-3 py-2 text-xs font-bold text-green-300 transition hover:bg-green-400 hover:text-ink sm:flex"
+          >
+            <MessageCircle className="h-4 w-4" />
+            WhatsApp
+          </a>
           <button
             onClick={onClose}
             className="w-10 h-10 rounded-full border border-sky flex items-center justify-center text-sky hover:bg-sky hover:text-ink transition-all"
@@ -341,23 +351,30 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
                       type="date"
                       min={getMinDate()}
                       value={formData.deliveryDate}
-                      onChange={(event) => setFormData((prev) => ({ ...prev, deliveryDate: event.target.value }))}
+                      onChange={(event) => setFormData((prev) => {
+                        const deliveryDate = event.target.value;
+                        return {
+                          ...prev,
+                          deliveryDate,
+                          deliveryTime: isDeliveryTimeAllowed(deliveryDate, prev.deliveryTime) ? prev.deliveryTime : "",
+                        };
+                      })}
                       className={`w-full rounded border bg-slate-700 py-3 pl-10 pr-4 text-white-alt outline-none focus:border-sky ${fieldErrors.deliveryDate ? "border-red-500" : "border-slate-600"}`}
                     />
                   </div>
                   {fieldErrors.deliveryDate && <p className="mt-1 text-sm text-red-400">{fieldErrors.deliveryDate}</p>}
                 </div>
                 <div>
-                  <select
+                  <input
+                    type="time"
                     value={formData.deliveryTime}
                     onChange={(event) => setFormData((prev) => ({ ...prev, deliveryTime: event.target.value }))}
+                    min={getMinDeliveryTime(formData.deliveryDate)}
                     className={`w-full rounded border bg-slate-700 px-4 py-3 text-white-alt outline-none focus:border-sky ${fieldErrors.deliveryTime ? "border-red-500" : "border-slate-600"}`}
-                  >
-                    <option value="">Время доставки</option>
-                    {DELIVERY_TIMES.map((time) => (
-                      <option key={time} value={time}>{time}</option>
-                    ))}
-                  </select>
+                  />
+                  <p className="mt-1 text-xs text-slate-500">
+                    Сегодня доступно минимум через 2 часа. На будущие даты можно выбрать любое время.
+                  </p>
                   {fieldErrors.deliveryTime && <p className="mt-1 text-sm text-red-400">{fieldErrors.deliveryTime}</p>}
                 </div>
               </div>

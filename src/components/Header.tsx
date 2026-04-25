@@ -1,6 +1,7 @@
 import { motion } from "motion/react";
-import { Search, ShoppingBag, User, Moon, Sun } from "lucide-react";
+import { MessageCircle, Search, ShoppingBag, User, Moon, Sun } from "lucide-react";
 import { useCartStore, useThemeStore } from "../stores";
+import { getGeneralWhatsappUrl } from "../utils/whatsapp";
 
 interface HeaderProps {
   onSearchClick: () => void;
@@ -29,7 +30,19 @@ export default function Header({ onSearchClick, onCartClick, onProfileClick }: H
         </motion.h1>
       </div>
 
-      <div className="grid grid-cols-4 gap-2 sm:flex sm:gap-4 lg:shrink-0">
+      <div className="grid grid-cols-5 gap-2 sm:flex sm:gap-4 lg:shrink-0">
+        <motion.a
+          href={getGeneralWhatsappUrl()}
+          target="_blank"
+          rel="noreferrer"
+          className="flex h-12 w-12 items-center justify-center rounded-full border border-green-400 text-green-400 transition-all hover:bg-green-400 hover:text-ink sm:h-16 sm:w-16"
+          whileHover={{ scale: 1.1, rotate: -4 }}
+          whileTap={{ scale: 0.9 }}
+          transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+          aria-label="Написать в WhatsApp"
+        >
+          <MessageCircle className="h-5 w-5 stroke-[3px] sm:h-6 sm:w-6" />
+        </motion.a>
         <motion.div
           onClick={toggleTheme}
           className={`h-12 w-12 rounded-full border flex items-center justify-center transition-all cursor-pointer sm:h-16 sm:w-16 ${

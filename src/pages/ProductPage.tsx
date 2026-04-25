@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, ChevronRight, ShieldCheck, ShoppingBag, Sparkles, Truck, Zap } from "lucide-react";
+import { ArrowLeft, ChevronRight, MessageCircle, ShieldCheck, ShoppingBag, Sparkles, Truck, Zap } from "lucide-react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import QuickOrderModal from "../components/QuickOrderModal";
@@ -12,6 +12,7 @@ import type { Product } from "../types";
 import { getOccasionLabel } from "../constants/occasions";
 import { canOrderProduct, getAvailabilityClass, getAvailabilityLabel } from "../constants/products";
 import { getProductPath } from "../utils/productLinks";
+import { getProductWhatsappUrl } from "../utils/whatsapp";
 
 export default function ProductPage() {
   const { idOrSlug = "" } = useParams();
@@ -174,6 +175,15 @@ export default function ProductPage() {
                   </div>
 
                   <div className="mt-8 grid gap-3 sm:grid-cols-2">
+                    <a
+                      href={getProductWhatsappUrl(product)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center justify-center gap-2 rounded-2xl border border-green-400/40 bg-green-400/10 py-4 text-sm font-black uppercase tracking-widest text-green-300 transition hover:bg-green-400 hover:text-ink sm:col-span-2"
+                    >
+                      <MessageCircle className="h-5 w-5" />
+                      Написать в WhatsApp
+                    </a>
                     <button
                       onClick={() => {
                         addItem(product);
