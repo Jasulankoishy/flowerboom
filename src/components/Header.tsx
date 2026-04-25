@@ -35,7 +35,11 @@ export default function Header({ onSearchClick, onCartClick, onProfileClick }: H
           href={getGeneralWhatsappUrl()}
           target="_blank"
           rel="noreferrer"
-          className="flex h-12 w-12 items-center justify-center rounded-full border border-green-400 text-green-400 transition-all hover:bg-green-400 hover:text-ink sm:h-16 sm:w-16"
+          className={`flex h-12 w-12 items-center justify-center rounded-full border transition-all sm:h-16 sm:w-16 ${
+            isDark
+              ? 'border-pink-400 text-pink-400 hover:bg-pink-400 hover:text-gray-900'
+              : 'border-sky text-sky hover:bg-sky hover:text-ink'
+          }`}
           whileHover={{ scale: 1.1, rotate: -4 }}
           whileTap={{ scale: 0.9 }}
           transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}

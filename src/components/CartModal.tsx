@@ -5,7 +5,8 @@ import { Calendar, Gift, MessageCircle, Minus, Plus, ShoppingBag, Trash2, X } fr
 import { ordersApi } from "../api/orders";
 import { promoCodesApi, type PromoValidationResult } from "../api/promoCodes";
 import { useAuthStore, useCartStore } from "../stores";
-import { getLocalDateString, getMinDeliveryTime, isDeliveryTimeAllowed } from "../utils/deliveryTime";
+import TimeWheelPicker from "./TimeWheelPicker";
+import { getLocalDateString, isDeliveryTimeAllowed } from "../utils/deliveryTime";
 import { getGeneralWhatsappUrl } from "../utils/whatsapp";
 
 interface CartModalProps {
@@ -200,7 +201,7 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
             href={getGeneralWhatsappUrl()}
             target="_blank"
             rel="noreferrer"
-            className="hidden items-center gap-2 rounded-full border border-green-400/40 bg-green-400/10 px-3 py-2 text-xs font-bold text-green-300 transition hover:bg-green-400 hover:text-ink sm:flex"
+            className="hidden items-center gap-2 rounded-full border border-sky/40 bg-sky/10 px-3 py-2 text-xs font-bold text-sky transition hover:bg-sky hover:text-ink sm:flex"
           >
             <MessageCircle className="h-4 w-4" />
             WhatsApp
@@ -365,16 +366,11 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
                   {fieldErrors.deliveryDate && <p className="mt-1 text-sm text-red-400">{fieldErrors.deliveryDate}</p>}
                 </div>
                 <div>
-                  <input
-                    type="time"
+                  <TimeWheelPicker
                     value={formData.deliveryTime}
-                    onChange={(event) => setFormData((prev) => ({ ...prev, deliveryTime: event.target.value }))}
-                    min={getMinDeliveryTime(formData.deliveryDate)}
-                    className={`w-full rounded border bg-slate-700 px-4 py-3 text-white-alt outline-none focus:border-sky ${fieldErrors.deliveryTime ? "border-red-500" : "border-slate-600"}`}
+                    deliveryDate={formData.deliveryDate}
+                    onChange={(deliveryTime) => setFormData((prev) => ({ ...prev, deliveryTime }))}
                   />
-                  <p className="mt-1 text-xs text-slate-500">
-                    Сегодня доступно минимум через 2 часа. На будущие даты можно выбрать любое время.
-                  </p>
                   {fieldErrors.deliveryTime && <p className="mt-1 text-sm text-red-400">{fieldErrors.deliveryTime}</p>}
                 </div>
               </div>

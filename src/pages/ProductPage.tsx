@@ -179,7 +179,7 @@ export default function ProductPage() {
                       href={getProductWhatsappUrl(product)}
                       target="_blank"
                       rel="noreferrer"
-                      className="flex items-center justify-center gap-2 rounded-2xl border border-green-400/40 bg-green-400/10 py-4 text-sm font-black uppercase tracking-widest text-green-300 transition hover:bg-green-400 hover:text-ink sm:col-span-2"
+                      className="flex items-center justify-center gap-2 rounded-2xl border border-sky/40 bg-sky/10 py-4 text-sm font-black uppercase tracking-widest text-sky transition hover:bg-sky hover:text-ink sm:col-span-2"
                     >
                       <MessageCircle className="h-5 w-5" />
                       Написать в WhatsApp

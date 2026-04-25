@@ -7,7 +7,7 @@ export default function Footer() {
         href={getGeneralWhatsappUrl()}
         target="_blank"
         rel="noreferrer"
-        className="rounded-full border border-green-400/40 bg-green-400/10 px-5 py-3 text-sm font-black uppercase tracking-widest text-green-300 transition hover:bg-green-400 hover:text-ink"
+        className="rounded-full border border-sky/40 bg-sky/10 px-5 py-3 text-sm font-black uppercase tracking-widest text-sky transition hover:bg-sky hover:text-ink"
       >
         Написать в WhatsApp
       </a>

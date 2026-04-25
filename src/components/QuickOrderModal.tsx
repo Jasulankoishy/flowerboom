@@ -6,7 +6,8 @@ import { ordersApi } from "../api/orders";
 import type { Product, CreateOrderDto } from "../types";
 import { useNavigate } from "react-router-dom";
 import { canOrderProduct, getAvailabilityClass, getAvailabilityLabel } from "../constants/products";
-import { getLocalDateString, getMinDeliveryTime, isDeliveryTimeAllowed } from "../utils/deliveryTime";
+import TimeWheelPicker from "./TimeWheelPicker";
+import { getLocalDateString, isDeliveryTimeAllowed } from "../utils/deliveryTime";
 import { getProductWhatsappUrl } from "../utils/whatsapp";
 
 interface QuickOrderModalProps {
@@ -251,7 +252,7 @@ export default function QuickOrderModal({ product, onClose }: QuickOrderModalPro
             href={getProductWhatsappUrl(product)}
             target="_blank"
             rel="noreferrer"
-            className="hidden items-center gap-2 rounded-full border border-green-400/40 bg-green-400/10 px-3 py-2 text-xs font-bold text-green-300 transition hover:bg-green-400 hover:text-ink sm:flex"
+            className="hidden items-center gap-2 rounded-full border border-sky/40 bg-sky/10 px-3 py-2 text-xs font-bold text-sky transition hover:bg-sky hover:text-ink sm:flex"
           >
             <MessageCircle className="h-4 w-4" />
             WhatsApp
@@ -415,18 +416,11 @@ export default function QuickOrderModal({ product, onClose }: QuickOrderModalPro
 
           {/* Delivery Time */}
           <div>
-            <input
-              type="time"
+            <TimeWheelPicker
               value={formData.deliveryTime}
-              onChange={(e) => setFormData((prev) => ({ ...prev, deliveryTime: e.target.value }))}
-              min={getMinDeliveryTime(formData.deliveryDate)}
-              className={`w-full bg-slate-700 border rounded px-4 py-2 text-white-alt focus:outline-none focus:border-sky transition-all ${
-                fieldErrors.deliveryTime ? "border-red-500" : "border-slate-600"
-              }`}
+              deliveryDate={formData.deliveryDate}
+              onChange={(deliveryTime) => setFormData((prev) => ({ ...prev, deliveryTime }))}
             />
-            <p className="mt-1 text-xs text-slate-500">
-              Сегодня доступно минимум через 2 часа. На будущие даты можно выбрать любое время.
-            </p>
             {fieldErrors.deliveryTime && <p className="text-red-400 text-sm mt-1">{fieldErrors.deliveryTime}</p>}
           </div>
 
