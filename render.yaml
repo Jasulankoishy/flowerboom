@@ -44,6 +44,12 @@ services:
         value: noreply@yourdomain.com
       - key: FRONTEND_URL
         sync: false
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_ADMIN_CHAT_ID
+        sync: false
+      - key: TELEGRAM_WEBHOOK_SECRET
+        sync: false
     healthCheckPath: /health
 
   # Frontend Static Site

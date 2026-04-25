@@ -1,6 +1,7 @@
 import prisma from '../prisma/client.js';
 import { normalizeOccasions } from '../constants/occasions.js';
 import { uploadProductImage } from '../utils/supabaseStorage.js';
+import { notifyEmergency } from '../utils/telegram.js';
 
 // Get all products
 export const getAllProducts = async (req, res) => {
@@ -134,6 +135,7 @@ export const uploadImage = async (req, res) => {
     });
   } catch (error) {
     console.error('Upload error:', error);
+    await notifyEmergency('Ошибка загрузки фото', error.message || 'Failed to upload image');
     res.status(error.status || 500).json({ message: error.message || 'Failed to upload image' });
   }
 };

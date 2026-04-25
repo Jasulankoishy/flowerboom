@@ -1,4 +1,5 @@
 import prisma from '../prisma/client.js';
+import { notifyEmergency, notifyNewOrder } from '../utils/telegram.js';
 
 const parsePrice = (value) => {
   const normalized = String(value || '').replace(/\s/g, '').replace(',', '.').replace(/[^\d.]/g, '');
@@ -120,13 +121,23 @@ export const createOrder = async (req, res) => {
           include: {
             product: true
           }
+        },
+        user: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            avatar: true
+          }
         }
       }
     });
 
+    notifyNewOrder(order);
     res.status(201).json(order);
   } catch (error) {
     console.error('Create order error:', error);
+    await notifyEmergency('Ошибка создания заказа', error.message || 'Failed to create order');
     res.status(500).json({ error: 'Failed to create order' });
   }
 };
