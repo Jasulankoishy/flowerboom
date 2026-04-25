@@ -24,6 +24,7 @@ import showcaseRoutes from './routes/showcase.js';
 import telegramRoutes from './routes/telegram.js';
 import promoRoutes from './routes/promo.js';
 import shareRoutes from './routes/share.js';
+import exportRoutes from './routes/export.js';
 
 const app = express();
 
@@ -69,7 +70,8 @@ app.use(cors({
 
     callback(new Error('Not allowed by CORS'));
   },
-  credentials: true
+  credentials: true,
+  exposedHeaders: ['Content-Disposition']
 }));
 
 // Body parsing
@@ -124,6 +126,7 @@ app.use('/api', ordersRoutes);
 app.use('/api', showcaseRoutes);
 app.use('/api', telegramRoutes);
 app.use('/api', promoRoutes);
+app.use('/api', exportRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

@@ -5,4 +5,5 @@ export * from "./reviews";
 export * from "./orders";
 export * from "./promoCodes";
 export * from "./showcase";
+export * from "./exports";
 export * from "./client";

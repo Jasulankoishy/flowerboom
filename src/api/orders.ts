@@ -20,6 +20,7 @@ export interface CreateOrderData {
   giftCardEnabled?: boolean;
   giftMessage?: string;
   promoCode?: string;
+  idempotencyKey?: string;
 }
 
 export interface Order {

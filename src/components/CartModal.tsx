@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
 import { Calendar, Gift, Minus, Plus, ShoppingBag, Trash2, X } from "lucide-react";
@@ -15,6 +15,10 @@ const DELIVERY_TIMES = ["9:00–12:00", "12:00–15:00", "15:00–18:00", "18:00
 
 const formatMoney = (value: number) => `${value.toFixed(0)}₽`;
 
+const createOrderKey = () => {
+  return crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+};
+
 export default function CartModal({ isOpen, onClose }: CartModalProps) {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuthStore();
@@ -28,6 +32,8 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
   const [appliedPromo, setAppliedPromo] = useState<PromoValidationResult | null>(null);
   const [promoLoading, setPromoLoading] = useState(false);
   const [promoError, setPromoError] = useState("");
+  const submittingRef = useRef(false);
+  const idempotencyKeyRef = useRef<string | null>(null);
   const [formData, setFormData] = useState({
     city: "",
     street: "",
@@ -116,6 +122,9 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+
+    if (submittingRef.current) return;
+
     setError("");
     setSuccessMessage("");
 
@@ -127,7 +136,11 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
 
     if (!validateForm()) return;
 
+    submittingRef.current = true;
     setLoading(true);
+    if (!idempotencyKeyRef.current) {
+      idempotencyKeyRef.current = createOrderKey();
+    }
 
     try {
       await ordersApi.create({
@@ -142,8 +155,10 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
         giftCardEnabled,
         giftMessage: giftCardEnabled ? giftMessage.trim() : undefined,
         promoCode: appliedPromo?.code,
+        idempotencyKey: idempotencyKeyRef.current,
       });
 
+      idempotencyKeyRef.current = null;
       clearCart();
       setSuccessMessage("Заказ оформлен");
       setTimeout(() => {
@@ -153,6 +168,7 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
     } catch (err: any) {
       setError(err.error || err.message || "Ошибка при оформлении заказа");
     } finally {
+      submittingRef.current = false;
       setLoading(false);
     }
   };

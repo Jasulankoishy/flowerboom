@@ -10,6 +10,21 @@ const parsePrice = (value) => {
 
 const ACTIVE_REVENUE_STATUSES = ['pending', 'accepted', 'confirmed', 'preparing', 'delivering', 'delivered'];
 const VALID_ORDER_STATUSES = ['pending', 'accepted', 'confirmed', 'preparing', 'delivering', 'delivered', 'cancelled'];
+const ORDER_INCLUDE = {
+  items: {
+    include: {
+      product: true
+    }
+  },
+  user: {
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      avatar: true
+    }
+  }
+};
 
 const getTodayDateString = () => {
   const parts = new Intl.DateTimeFormat('en', {
@@ -38,10 +53,28 @@ export const createOrder = async (req, res) => {
     deliveryTime,
     giftCardEnabled = false,
     giftMessage = '',
-    promoCode: rawPromoCode = ''
+    promoCode: rawPromoCode = '',
+    idempotencyKey: rawIdempotencyKey = ''
   } = req.body;
 
   try {
+    const idempotencyKey = String(rawIdempotencyKey || '').trim().slice(0, 120) || null;
+
+    if (idempotencyKey) {
+      const existingOrder = await prisma.order.findUnique({
+        where: { idempotencyKey },
+        include: ORDER_INCLUDE
+      });
+
+      if (existingOrder) {
+        if (existingOrder.userId !== req.user.userId) {
+          return res.status(409).json({ error: 'Order key already used' });
+        }
+
+        return res.status(200).json(existingOrder);
+      }
+    }
+
     // Validation
     if (!items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ error: 'Items are required' });
@@ -135,6 +168,7 @@ export const createOrder = async (req, res) => {
           totalPrice: promoResult.finalTotal.toFixed(2),
           giftCardEnabled: Boolean(giftCardEnabled),
           giftMessage: cleanGiftMessage,
+          idempotencyKey,
           status: 'pending',
           items: {
             create: normalizedItems.map(item => ({
@@ -144,21 +178,7 @@ export const createOrder = async (req, res) => {
             }))
           }
         },
-        include: {
-          items: {
-            include: {
-              product: true
-            }
-          },
-          user: {
-            select: {
-              id: true,
-              email: true,
-              name: true,
-              avatar: true
-            }
-          }
-        }
+        include: ORDER_INCLUDE
       });
 
       if (promoResult.promoCode) {
@@ -194,6 +214,17 @@ export const createOrder = async (req, res) => {
     notifyNewOrder(order);
     res.status(201).json(order);
   } catch (error) {
+    if (error.code === 'P2002' && rawIdempotencyKey) {
+      const existingOrder = await prisma.order.findUnique({
+        where: { idempotencyKey: String(rawIdempotencyKey).trim().slice(0, 120) },
+        include: ORDER_INCLUDE
+      });
+
+      if (existingOrder && existingOrder.userId === req.user.userId) {
+        return res.status(200).json(existingOrder);
+      }
+    }
+
     if (error.statusCode) {
       return res.status(error.statusCode).json({ error: error.message });
     }

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { motion } from "motion/react";
 import { Gift, X } from "lucide-react";
 import { useAuthStore } from "../stores";
@@ -13,6 +13,10 @@ interface QuickOrderModalProps {
 
 const DELIVERY_TIMES = ["9:00–12:00", "12:00–15:00", "15:00–18:00", "18:00–21:00"];
 
+const createOrderKey = () => {
+  return crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+};
+
 export default function QuickOrderModal({ product, onClose }: QuickOrderModalProps) {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuthStore();
@@ -22,6 +26,8 @@ export default function QuickOrderModal({ product, onClose }: QuickOrderModalPro
   const [successMessage, setSuccessMessage] = useState("");
   const [giftCardEnabled, setGiftCardEnabled] = useState(false);
   const [giftMessage, setGiftMessage] = useState("");
+  const submittingRef = useRef(false);
+  const idempotencyKeyRef = useRef<string | null>(null);
 
   // Form fields
   const [formData, setFormData] = useState({
@@ -119,6 +125,9 @@ export default function QuickOrderModal({ product, onClose }: QuickOrderModalPro
   // Handle submit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (submittingRef.current) return;
+
     setError("");
     setSuccessMessage("");
 
@@ -126,7 +135,11 @@ export default function QuickOrderModal({ product, onClose }: QuickOrderModalPro
       return;
     }
 
+    submittingRef.current = true;
     setLoading(true);
+    if (!idempotencyKeyRef.current) {
+      idempotencyKeyRef.current = createOrderKey();
+    }
 
     try {
       const orderData: CreateOrderDto = {
@@ -146,10 +159,12 @@ export default function QuickOrderModal({ product, onClose }: QuickOrderModalPro
         totalPrice: totalPrice,
         giftCardEnabled,
         giftMessage: giftCardEnabled ? giftMessage.trim() : undefined,
+        idempotencyKey: idempotencyKeyRef.current,
       };
 
-      const result = await ordersApi.create(orderData);
+      await ordersApi.create(orderData);
 
+      idempotencyKeyRef.current = null;
       setSuccessMessage("Заказ оформлен 🌸");
 
       // Close modal after 1 second
@@ -163,6 +178,7 @@ export default function QuickOrderModal({ product, onClose }: QuickOrderModalPro
       setError(errorMsg);
       console.error("Order error:", err);
     } finally {
+      submittingRef.current = false;
       setLoading(false);
     }
   };

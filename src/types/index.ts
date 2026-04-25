@@ -103,4 +103,5 @@ export interface CreateOrderDto {
   giftCardEnabled?: boolean;
   giftMessage?: string;
   promoCode?: string;
+  idempotencyKey?: string;
 }

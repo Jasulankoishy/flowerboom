@@ -57,9 +57,9 @@ async function refreshAccessToken(): Promise<string | null> {
 }
 
 /**
- * Helper for JSON requests
+ * Fetch wrapper with one automatic access-token refresh retry
  */
-export async function apiRequest<T>(url: string, options: RequestInit = {}): Promise<T> {
+export async function apiFetchWithRefresh(url: string, options: RequestInit = {}): Promise<Response> {
   let response = await apiFetch(url, options);
 
   if (response.status === 401 || response.status === 403) {
@@ -75,6 +75,15 @@ export async function apiRequest<T>(url: string, options: RequestInit = {}): Pro
       });
     }
   }
+
+  return response;
+}
+
+/**
+ * Helper for JSON requests
+ */
+export async function apiRequest<T>(url: string, options: RequestInit = {}): Promise<T> {
+  const response = await apiFetchWithRefresh(url, options);
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ error: 'Request failed' }));

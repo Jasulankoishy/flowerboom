@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
-import { Banknote, Calendar, ClipboardList, Copy, Edit2, ExternalLink, Gift, LogOut, MapPin, Package, Phone, Plus, ShoppingBag, Sparkles, Tag, Timer, Trash2, User } from "lucide-react";
+import { Banknote, Calendar, ClipboardList, Copy, Download, Edit2, ExternalLink, Gift, LogOut, MapPin, Package, Phone, Plus, ShoppingBag, Sparkles, Tag, Timer, Trash2, User } from "lucide-react";
+import { adminExportApi, type ExportFormat, type ExportKind } from "../api";
 import { ordersApi, type AdminStats, type Order } from "../api/orders";
 import AdminPromoCodesPanel from "../components/AdminPromoCodesPanel";
 import AdminShowcasePanel from "../components/AdminShowcasePanel";
@@ -50,6 +51,8 @@ export default function AdminPanelPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [statsError, setStatsError] = useState("");
+  const [exporting, setExporting] = useState("");
+  const [exportError, setExportError] = useState("");
 
   useEffect(() => {
     loadStats();
@@ -150,6 +153,20 @@ export default function AdminPanelPage() {
     }
   };
 
+  const handleExport = async (kind: ExportKind, format: ExportFormat) => {
+    const key = `${kind}-${format}`;
+    setExporting(key);
+    setExportError("");
+
+    try {
+      await adminExportApi.download(kind, format);
+    } catch (err: any) {
+      setExportError(err.message || "Ошибка экспорта");
+    } finally {
+      setExporting("");
+    }
+  };
+
   const formatDate = (value: string) => {
     return new Date(value).toLocaleDateString("ru-RU", {
       day: "2-digit",
@@ -224,6 +241,11 @@ export default function AdminPanelPage() {
 
       <main className="container mx-auto px-4 py-8">
         <section className="mb-8">
+          {exportError && (
+            <div className="mb-4 rounded border border-red-500/50 bg-red-500/10 p-3 text-sm text-red-300">
+              {exportError}
+            </div>
+          )}
           {statsError && (
             <div className="mb-4 rounded border border-red-500/50 bg-red-500/10 p-3 text-sm text-red-300">
               {statsError}
@@ -265,18 +287,36 @@ export default function AdminPanelPage() {
           <>
             <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <h2 className="text-xl font-bold text-white-alt">Товары ({products.length})</h2>
-              <button
-                onClick={() => {
-                  setEditingProduct(null);
-                  setImageUrl("");
-                  setSelectedOccasions([]);
-                  setShowForm(true);
-                }}
-                className="flex items-center gap-2 px-4 py-2 bg-sky text-ink font-bold rounded hover:brightness-110 transition-all"
-              >
-                <Plus className="w-5 h-5" />
-                Добавить товар
-              </button>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => handleExport("products", "json")}
+                  disabled={exporting === "products-json"}
+                  className="flex items-center gap-2 rounded border border-slate-600 px-4 py-2 text-sm font-bold text-white-alt transition-all hover:border-sky disabled:opacity-50"
+                >
+                  <Download className="h-4 w-4" />
+                  JSON
+                </button>
+                <button
+                  onClick={() => handleExport("products", "csv")}
+                  disabled={exporting === "products-csv"}
+                  className="flex items-center gap-2 rounded border border-slate-600 px-4 py-2 text-sm font-bold text-white-alt transition-all hover:border-sky disabled:opacity-50"
+                >
+                  <Download className="h-4 w-4" />
+                  CSV
+                </button>
+                <button
+                  onClick={() => {
+                    setEditingProduct(null);
+                    setImageUrl("");
+                    setSelectedOccasions([]);
+                    setShowForm(true);
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 bg-sky text-ink font-bold rounded hover:brightness-110 transition-all"
+                >
+                  <Plus className="w-5 h-5" />
+                  Добавить товар
+                </button>
+              </div>
             </div>
 
             {showForm && (
@@ -432,6 +472,20 @@ export default function AdminPanelPage() {
                 <p className="text-sm text-slate-400">Управление доставкой, статусами и открытками</p>
               </div>
               <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => handleExport("orders", "json")}
+                  disabled={exporting === "orders-json"}
+                  className="rounded border border-slate-600 px-3 py-2 text-sm font-bold text-slate-300 transition-all hover:border-sky disabled:opacity-50"
+                >
+                  JSON
+                </button>
+                <button
+                  onClick={() => handleExport("orders", "csv")}
+                  disabled={exporting === "orders-csv"}
+                  className="rounded border border-slate-600 px-3 py-2 text-sm font-bold text-slate-300 transition-all hover:border-sky disabled:opacity-50"
+                >
+                  CSV
+                </button>
                 {STATUS_OPTIONS.map((status) => (
                   <button
                     key={status}
