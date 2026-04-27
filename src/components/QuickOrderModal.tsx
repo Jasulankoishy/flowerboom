@@ -172,14 +172,14 @@ export default function QuickOrderModal({ product, onClose }: QuickOrderModalPro
       await ordersApi.create(orderData);
 
       idempotencyKeyRef.current = null;
-      setSuccessMessage("Заказ оформлен 🌸");
+      setSuccessMessage("Заказ оформлен. Вы можете отслеживать его статус в профиле → Мои заказы");
 
       // Close modal after 1 second
       setTimeout(() => {
         onClose();
         // Redirect to orders page
         navigate("/profile/orders");
-      }, 1000);
+      }, 1200);
     } catch (err: any) {
       const errorMsg = err.error || err.message || "Ошибка при оформлении заказа";
       setError(errorMsg);

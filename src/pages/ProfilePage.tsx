@@ -4,7 +4,7 @@ import Footer from "../components/Footer";
 import SearchModal from "../components/SearchModal";
 import CartModal from "../components/CartModal";
 import { motion } from "motion/react";
-import { User, Mail, LogOut, Edit2, X, Check } from "lucide-react";
+import { Check, ClipboardList, Edit2, LogOut, Mail, User, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { authApi } from "../api/auth";
@@ -162,6 +162,19 @@ export default function ProfilePage() {
                 </div>
               </div>
             </div>
+
+            <button
+              onClick={() => navigate("/profile/orders")}
+              className="mb-8 flex w-full items-center gap-4 rounded-lg border border-sky/30 bg-sky/10 p-4 text-left transition-all hover:bg-sky/20"
+            >
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-sky text-ink">
+                <ClipboardList className="h-6 w-6" />
+              </span>
+              <span>
+                <span className="block text-lg font-black text-white-alt">Мои заказы</span>
+                <span className="text-sm text-slate-400">Смотрите текущий статус, доставку и прошлые заказы.</span>
+              </span>
+            </button>
 
             <button
               onClick={handleLogout}

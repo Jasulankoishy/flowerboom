@@ -25,6 +25,16 @@ const STATUS_COLORS: Record<string, string> = {
   cancelled: "bg-red-500/20 text-red-400 border-red-500/50",
 };
 
+const STATUS_DESCRIPTIONS: Record<string, string> = {
+  pending: "Заказ получен, скоро администратор примет его в работу.",
+  accepted: "Заказ принят, команда готовит букет к сборке.",
+  confirmed: "Заказ принят, команда готовит букет к сборке.",
+  preparing: "Букет сейчас собирают и готовят к доставке.",
+  delivering: "Курьер уже в пути к указанному адресу.",
+  delivered: "Заказ доставлен. Спасибо, что выбрали Flowerboom.",
+  cancelled: "Заказ отменён. Если это ошибка, напишите нам в WhatsApp.",
+};
+
 const ORDER_STEPS = [
   { status: "accepted", label: "Принят" },
   { status: "preparing", label: "Собираем" },
@@ -33,7 +43,8 @@ const ORDER_STEPS = [
 ];
 
 const getStepIndex = (status: string) => {
-  if (status === "pending" || status === "confirmed") return 0;
+  if (status === "pending") return -1;
+  if (status === "confirmed") return 0;
   return Math.max(0, ORDER_STEPS.findIndex((step) => step.status === status));
 };
 
@@ -135,7 +146,7 @@ export default function OrdersPage() {
         >
           <h1 className="mb-2 text-3xl font-bold text-white-alt sm:text-4xl">Мои заказы</h1>
           <p className="text-slate-400">
-            Всего заказов: {orders.length}
+            Здесь видно, где сейчас ваш заказ, когда доставка и что вы заказывали. Всего заказов: {orders.length}
           </p>
         </motion.div>
 
@@ -165,6 +176,10 @@ export default function OrdersPage() {
                 >
                   {STATUS_LABELS[order.status] || order.status}
                 </div>
+              </div>
+              <div className="mb-6 rounded-lg border border-sky/30 bg-sky/10 p-4">
+                <p className="text-xs font-black uppercase tracking-[0.25em] text-sky">Где сейчас заказ</p>
+                <p className="mt-2 text-white-alt">{STATUS_DESCRIPTIONS[order.status] || "Статус заказа обновляется."}</p>
               </div>
 
               {order.status !== "cancelled" && (

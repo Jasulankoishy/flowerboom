@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
-import { Banknote, Calendar, ClipboardList, Copy, Download, Edit2, ExternalLink, Gift, LogOut, MapPin, Package, Phone, Plus, Search, ShoppingBag, Sparkles, Tag, Timer, Trash2, User } from "lucide-react";
+import { Banknote, BarChart3, Calendar, Circle, ClipboardList, Copy, Download, Edit2, ExternalLink, Gift, LineChart, LogOut, MapPin, Package, Phone, Plus, Search, ShoppingBag, SlidersHorizontal, Sparkles, Tag, Timer, Trash2, User } from "lucide-react";
 import { adminExportApi, type ExportFormat, type ExportKind } from "../api";
-import { ordersApi, type AdminStats, type Order } from "../api/orders";
+import { ordersApi, type AdminAnalytics, type AdminStats, type Order } from "../api/orders";
 import AdminPromoCodesPanel from "../components/AdminPromoCodesPanel";
 import AdminShowcasePanel from "../components/AdminShowcasePanel";
 import ImageUpload from "../components/ImageUpload";
@@ -36,6 +36,162 @@ const STATUS_COLORS: Record<string, string> = {
 
 const STATUS_OPTIONS = ["all", "pending", "accepted", "preparing", "delivering", "delivered", "cancelled"];
 const EDITABLE_STATUS_OPTIONS = ["accepted", "preparing", "delivering", "delivered", "cancelled"];
+const PRODUCT_FILTERS = [
+  { value: "all", label: "Все" },
+  { value: "published", label: "Опубликованные" },
+  { value: "drafts", label: "Черновики" },
+  { value: "in_stock", label: "В наличии" },
+  { value: "out_of_stock", label: "Нет в наличии" },
+  { value: "preorder", label: "Под заказ" },
+] as const;
+
+type ProductFilter = typeof PRODUCT_FILTERS[number]["value"];
+type ProductSort = "newest" | "oldest" | "titleAsc" | "titleDesc" | "priceHigh" | "priceLow";
+
+const parseMoney = (value: string) => Number.parseFloat(value.replace(/\s/g, "").replace(",", ".").replace(/[^\d.]/g, "")) || 0;
+
+const getStatusHex = (status: string) => {
+  const colors: Record<string, string> = {
+    pending: "#facc15",
+    accepted: "#60a5fa",
+    confirmed: "#60a5fa",
+    preparing: "#c084fc",
+    delivering: "#fb923c",
+    delivered: "#4ade80",
+    cancelled: "#f87171",
+  };
+  return colors[status] || "#94a3b8";
+};
+
+const formatChartDate = (value: string) => {
+  const date = new Date(`${value}T00:00:00`);
+  return date.toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" });
+};
+
+function OrdersLineChart({ data }: { data: AdminAnalytics["ordersByDay"] }) {
+  const max = Math.max(1, ...data.map((item) => item.count));
+  const points = data.map((item, index) => {
+    const x = 24 + index * (472 / Math.max(1, data.length - 1));
+    const y = 130 - (item.count / max) * 96;
+    return `${x},${y}`;
+  }).join(" ");
+
+  return (
+    <div className="rounded-lg border border-slate-700 bg-slate-800 p-5">
+      <div className="mb-4 flex items-center gap-2">
+        <LineChart className="h-5 w-5 text-sky" />
+        <h3 className="font-black text-white-alt">Заказы за 14 дней</h3>
+      </div>
+      <svg viewBox="0 0 520 160" className="h-40 w-full">
+        <line x1="24" y1="130" x2="496" y2="130" stroke="#334155" strokeWidth="2" />
+        <polyline points={points} fill="none" stroke="#d4af37" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+        {data.map((item, index) => {
+          const x = 24 + index * (472 / Math.max(1, data.length - 1));
+          const y = 130 - (item.count / max) * 96;
+          return <circle key={item.date} cx={x} cy={y} r="5" fill="#d4af37" />;
+        })}
+      </svg>
+      <div className="mt-2 flex justify-between text-xs text-slate-500">
+        <span>{data[0] ? formatChartDate(data[0].date) : "—"}</span>
+        <span>Макс: {max}</span>
+        <span>{data[data.length - 1] ? formatChartDate(data[data.length - 1].date) : "—"}</span>
+      </div>
+    </div>
+  );
+}
+
+function OrdersStatusBars({ data }: { data: AdminAnalytics["ordersByStatus"] }) {
+  const visible = data.filter((item) => item.count > 0);
+  const items = visible.length ? visible : data;
+  const max = Math.max(1, ...items.map((item) => item.count));
+
+  return (
+    <div className="rounded-lg border border-slate-700 bg-slate-800 p-5">
+      <div className="mb-4 flex items-center gap-2">
+        <BarChart3 className="h-5 w-5 text-sky" />
+        <h3 className="font-black text-white-alt">Заказы по статусам</h3>
+      </div>
+      <div className="space-y-3">
+        {items.map((item) => (
+          <div key={item.status}>
+            <div className="mb-1 flex justify-between text-xs font-bold text-slate-300">
+              <span>{STATUS_LABELS[item.status] || item.status}</span>
+              <span>{item.count}</span>
+            </div>
+            <div className="h-3 overflow-hidden rounded-full bg-slate-700">
+              <div className="h-full rounded-full" style={{ width: `${(item.count / max) * 100}%`, backgroundColor: getStatusHex(item.status) }} />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function RevenuePieChart({ data }: { data: AdminAnalytics["revenueByStatus"] }) {
+  const items = data.filter((item) => item.total > 0);
+  const total = items.reduce((sum, item) => sum + item.total, 0);
+  let start = 0;
+  const gradient = total > 0
+    ? items.map((item) => {
+      const percent = (item.total / total) * 100;
+      const segment = `${getStatusHex(item.status)} ${start}% ${start + percent}%`;
+      start += percent;
+      return segment;
+    }).join(", ")
+    : "#334155 0% 100%";
+
+  return (
+    <div className="rounded-lg border border-slate-700 bg-slate-800 p-5">
+      <div className="mb-4 flex items-center gap-2">
+        <Circle className="h-5 w-5 text-sky" />
+        <h3 className="font-black text-white-alt">Выручка по статусам</h3>
+      </div>
+      <div className="grid gap-5 sm:grid-cols-[150px_1fr] sm:items-center">
+        <div className="mx-auto h-36 w-36 rounded-full border border-slate-700" style={{ background: `conic-gradient(${gradient})` }} />
+        <div className="space-y-2">
+          {items.length === 0 ? (
+            <p className="text-sm text-slate-400">Пока нет выручки для графика</p>
+          ) : items.map((item) => (
+            <div key={item.status} className="flex items-center justify-between gap-3 text-sm">
+              <span className="flex items-center gap-2 text-slate-300">
+                <span className="h-3 w-3 rounded-full" style={{ backgroundColor: getStatusHex(item.status) }} />
+                {STATUS_LABELS[item.status] || item.status}
+              </span>
+              <span className="font-bold text-white-alt">{item.total.toFixed(0)}₽</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AdminAnalyticsPanel({ analytics, loading, error }: { analytics: AdminAnalytics | null; loading: boolean; error: string }) {
+  if (loading) {
+    return <div className="rounded-lg border border-slate-700 bg-slate-800 p-5 text-slate-400">Загрузка аналитики...</div>;
+  }
+
+  if (error) {
+    return <div className="rounded-lg border border-red-500/50 bg-red-500/10 p-5 text-red-300">{error}</div>;
+  }
+
+  if (!analytics) return null;
+
+  return (
+    <section className="mt-6">
+      <div className="mb-4 flex items-center gap-2">
+        <BarChart3 className="h-5 w-5 text-sky" />
+        <h2 className="text-xl font-black text-white-alt">Аналитика заказов</h2>
+      </div>
+      <div className="grid gap-4 xl:grid-cols-3">
+        <OrdersLineChart data={analytics.ordersByDay} />
+        <OrdersStatusBars data={analytics.ordersByStatus} />
+        <RevenuePieChart data={analytics.revenueByStatus} />
+      </div>
+    </section>
+  );
+}
 
 export default function AdminPanelPage() {
   const { logout } = useAuthStore();
@@ -46,6 +202,9 @@ export default function AdminPanelPage() {
   const [showForm, setShowForm] = useState(false);
   const [imageUrl, setImageUrl] = useState("");
   const [selectedOccasions, setSelectedOccasions] = useState<string[]>([]);
+  const [productSearch, setProductSearch] = useState("");
+  const [productFilter, setProductFilter] = useState<ProductFilter>("all");
+  const [productSort, setProductSort] = useState<ProductSort>("newest");
   const [orders, setOrders] = useState<Order[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [ordersError, setOrdersError] = useState("");
@@ -56,11 +215,15 @@ export default function AdminPanelPage() {
   const [orderSort, setOrderSort] = useState<"newest" | "oldest" | "deliveryDate" | "totalHigh" | "totalLow">("newest");
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [statsError, setStatsError] = useState("");
+  const [analytics, setAnalytics] = useState<AdminAnalytics | null>(null);
+  const [analyticsLoading, setAnalyticsLoading] = useState(false);
+  const [analyticsError, setAnalyticsError] = useState("");
   const [exporting, setExporting] = useState("");
   const [exportError, setExportError] = useState("");
 
   useEffect(() => {
     loadStats();
+    loadAnalytics();
   }, []);
 
   useEffect(() => {
@@ -103,11 +266,25 @@ export default function AdminPanelPage() {
     }
   };
 
+  const loadAnalytics = async () => {
+    setAnalyticsLoading(true);
+    setAnalyticsError("");
+    try {
+      const data = await ordersApi.getAdminAnalytics();
+      setAnalytics(data);
+    } catch (err: any) {
+      setAnalyticsError(err.message || "Ошибка загрузки аналитики");
+    } finally {
+      setAnalyticsLoading(false);
+    }
+  };
+
   const handleStatusChange = async (id: string, status: string) => {
     try {
       const updated = await ordersApi.updateStatus(id, status);
       setOrders((current) => current.map((order) => (order.id === id ? updated : order)));
       await loadStats();
+      await loadAnalytics();
     } catch (err: any) {
       setOrdersError(err.message || "Ошибка обновления статуса");
     }
@@ -187,6 +364,32 @@ export default function AdminPanelPage() {
       year: "numeric",
     });
   };
+
+  const filteredProducts = products
+    .filter((product) => {
+      const query = productSearch.trim().toLowerCase();
+      const matchesSearch = !query
+        || product.title.toLowerCase().includes(query)
+        || product.description.toLowerCase().includes(query)
+        || product.price.toLowerCase().includes(query);
+
+      const matchesFilter = productFilter === "all"
+        || (productFilter === "published" && product.isPublished)
+        || (productFilter === "drafts" && !product.isPublished)
+        || product.availability === productFilter;
+
+      return matchesSearch && matchesFilter;
+    })
+    .sort((left, right) => {
+      if (productSort === "titleAsc") return left.title.localeCompare(right.title, "ru");
+      if (productSort === "titleDesc") return right.title.localeCompare(left.title, "ru");
+      if (productSort === "priceHigh") return parseMoney(right.price) - parseMoney(left.price);
+      if (productSort === "priceLow") return parseMoney(left.price) - parseMoney(right.price);
+
+      const leftDate = new Date(left.createdAt || "1970-01-01").getTime();
+      const rightDate = new Date(right.createdAt || "1970-01-01").getTime();
+      return productSort === "oldest" ? leftDate - rightDate : rightDate - leftDate;
+    });
 
   return (
     <div className="min-h-screen bg-ink">
@@ -294,12 +497,13 @@ export default function AdminPanelPage() {
               <p className="mt-1 text-3xl font-black text-white-alt">{Number(stats?.totalRevenue ?? 0).toFixed(0)}₽</p>
             </div>
           </div>
+          <AdminAnalyticsPanel analytics={analytics} loading={analyticsLoading} error={analyticsError} />
         </section>
 
         {activeTab === "products" ? (
           <>
             <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <h2 className="text-xl font-bold text-white-alt">Товары ({products.length})</h2>
+              <h2 className="text-xl font-bold text-white-alt">Товары ({filteredProducts.length}/{products.length})</h2>
               <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => handleExport("products", "json")}
@@ -329,6 +533,43 @@ export default function AdminPanelPage() {
                   <Plus className="w-5 h-5" />
                   Добавить товар
                 </button>
+              </div>
+            </div>
+
+            <div className="mb-6 grid gap-3 rounded-lg border border-slate-700 bg-slate-800 p-4 xl:grid-cols-[1.4fr_1fr_0.8fr]">
+              <label className="relative">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-sky" />
+                <input
+                  value={productSearch}
+                  onChange={(event) => setProductSearch(event.target.value)}
+                  placeholder="Поиск товара: название, описание, цена"
+                  className="w-full rounded border border-slate-600 bg-slate-700 py-3 pl-10 pr-4 text-white-alt outline-none focus:border-sky"
+                />
+              </label>
+              <select
+                value={productFilter}
+                onChange={(event) => setProductFilter(event.target.value as ProductFilter)}
+                className="rounded border border-slate-600 bg-slate-700 px-4 py-3 text-white-alt outline-none focus:border-sky"
+              >
+                {PRODUCT_FILTERS.map((filter) => (
+                  <option key={filter.value} value={filter.value}>{filter.label}</option>
+                ))}
+              </select>
+              <select
+                value={productSort}
+                onChange={(event) => setProductSort(event.target.value as ProductSort)}
+                className="rounded border border-slate-600 bg-slate-700 px-4 py-3 text-white-alt outline-none focus:border-sky"
+              >
+                <option value="newest">Сначала новые</option>
+                <option value="oldest">Сначала старые</option>
+                <option value="titleAsc">Название A-Z</option>
+                <option value="titleDesc">Название Z-A</option>
+                <option value="priceHigh">Цена выше</option>
+                <option value="priceLow">Цена ниже</option>
+              </select>
+              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-slate-500 xl:col-span-3">
+                <SlidersHorizontal className="h-4 w-4 text-sky" />
+                Фильтры работают по всем товарам админки, включая черновики.
               </div>
             </div>
 
@@ -441,9 +682,13 @@ export default function AdminPanelPage() {
 
             {loading ? (
               <p className="text-slate-400 text-center">Загрузка...</p>
+            ) : filteredProducts.length === 0 ? (
+              <p className="rounded border border-slate-700 bg-slate-800 p-8 text-center text-slate-400">
+                По этим фильтрам товаров не найдено
+              </p>
             ) : (
               <div className="grid gap-4">
-                {products.map((product) => (
+                {filteredProducts.map((product) => (
                   <motion.div
                     key={product.id}
                     initial={{ opacity: 0 }}

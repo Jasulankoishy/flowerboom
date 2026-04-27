@@ -9,6 +9,8 @@ export interface Product {
   occasions: string[];
   isPublished: boolean;
   availability: "in_stock" | "out_of_stock" | "preorder";
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface ShowcaseSlide {

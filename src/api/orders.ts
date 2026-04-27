@@ -69,6 +69,12 @@ export interface AdminStats {
   totalRevenue: string;
 }
 
+export interface AdminAnalytics {
+  ordersByDay: Array<{ date: string; count: number }>;
+  ordersByStatus: Array<{ status: string; count: number }>;
+  revenueByStatus: Array<{ status: string; total: number }>;
+}
+
 export interface AdminOrderFilters {
   status?: string;
   q?: string;
@@ -120,5 +126,9 @@ export const ordersApi = {
 
   async getAdminStats(): Promise<AdminStats> {
     return apiRequest<AdminStats>(`${API_URL}${API_ENDPOINTS.adminStats}`);
+  },
+
+  async getAdminAnalytics(): Promise<AdminAnalytics> {
+    return apiRequest<AdminAnalytics>(`${API_URL}${API_ENDPOINTS.adminAnalytics}`);
   },
 };

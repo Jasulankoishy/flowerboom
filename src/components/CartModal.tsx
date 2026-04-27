@@ -161,11 +161,11 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
 
       idempotencyKeyRef.current = null;
       clearCart();
-      setSuccessMessage("Заказ оформлен");
+      setSuccessMessage("Заказ оформлен. Вы можете отслеживать его статус в профиле → Мои заказы");
       setTimeout(() => {
         onClose();
         navigate("/profile/orders");
-      }, 800);
+      }, 1200);
     } catch (err: any) {
       setError(err.error || err.message || "Ошибка при оформлении заказа");
     } finally {

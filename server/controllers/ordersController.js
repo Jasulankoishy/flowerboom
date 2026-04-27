@@ -466,6 +466,79 @@ export const getAdminStats = async (req, res) => {
   }
 };
 
+// Get admin analytics for lightweight dashboard charts
+export const getAdminAnalytics = async (req, res) => {
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const start = new Date(today);
+    start.setDate(start.getDate() - 13);
+
+    const [recentOrders, allOrders] = await Promise.all([
+      prisma.order.findMany({
+        where: {
+          createdAt: {
+            gte: start
+          }
+        },
+        select: {
+          createdAt: true,
+          status: true,
+          totalPrice: true
+        }
+      }),
+      prisma.order.findMany({
+        select: {
+          status: true,
+          totalPrice: true
+        }
+      })
+    ]);
+
+    const dayFormatter = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Qyzylorda',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    });
+
+    const ordersByDayMap = new Map();
+    for (let index = 0; index < 14; index += 1) {
+      const day = new Date(start);
+      day.setDate(start.getDate() + index);
+      ordersByDayMap.set(dayFormatter.format(day), 0);
+    }
+
+    const ordersByStatusMap = new Map(VALID_ORDER_STATUSES.map((status) => [status, 0]));
+    const revenueByStatusMap = new Map(ACTIVE_REVENUE_STATUSES.map((status) => [status, 0]));
+
+    recentOrders.forEach((order) => {
+      const dayKey = dayFormatter.format(order.createdAt);
+      if (ordersByDayMap.has(dayKey)) {
+        ordersByDayMap.set(dayKey, ordersByDayMap.get(dayKey) + 1);
+      }
+    });
+
+    allOrders.forEach((order) => {
+      ordersByStatusMap.set(order.status, (ordersByStatusMap.get(order.status) || 0) + 1);
+
+      if (ACTIVE_REVENUE_STATUSES.includes(order.status)) {
+        revenueByStatusMap.set(order.status, (revenueByStatusMap.get(order.status) || 0) + parsePrice(order.totalPrice));
+      }
+    });
+
+    res.json({
+      ordersByDay: Array.from(ordersByDayMap, ([date, count]) => ({ date, count })),
+      ordersByStatus: Array.from(ordersByStatusMap, ([status, count]) => ({ status, count })),
+      revenueByStatus: Array.from(revenueByStatusMap, ([status, total]) => ({ status, total }))
+    });
+  } catch (error) {
+    console.error('Get admin analytics error:', error);
+    res.status(500).json({ error: 'Failed to fetch admin analytics' });
+  }
+};
+
 // Update order status (admin only)
 export const updateOrderStatus = async (req, res) => {
   const { id } = req.params;

@@ -25,6 +25,7 @@ export const API_ENDPOINTS = {
   order: (id: string) => `/api/orders/${id}`,
   adminOrders: "/api/admin/orders",
   adminStats: "/api/admin/stats",
+  adminAnalytics: "/api/admin/analytics",
   updateOrderStatus: (id: string) => `/api/admin/orders/${id}/status`,
   exportProducts: "/api/admin/export/products",
   exportOrders: "/api/admin/export/orders",
