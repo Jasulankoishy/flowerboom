@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import ProHeroShowcase from "../components/ProHeroShowcase";
+import BouquetInspiration from "../components/BouquetInspiration";
 import ProductGrid from "../components/ProductGrid";
 import Footer from "../components/Footer";
 import SearchModal from "../components/SearchModal";
@@ -34,6 +35,7 @@ export default function HomePage() {
       />
       <main className="mx-auto w-full max-w-[1560px] flex-1">
         <ProHeroShowcase onQuickOrder={handleQuickOrder} />
+        <BouquetInspiration />
         <ProductGrid
           onQuickOrder={handleQuickOrder}
           onShowReviews={handleShowReviews}
