@@ -1,0 +1,32 @@
+[
+  {
+    "title": "Розовый шёлк",
+    "image": "pink-silk.jpg",
+    "source": "https://www.pinterest.com/pin/778137641861461694/"
+  },
+  {
+    "title": "Пудровое утро",
+    "image": "powder-morning.jpg",
+    "source": "https://www.pinterest.com/pin/710583647450210807/"
+  },
+  {
+    "title": "Голубое облако",
+    "image": "blue-cloud.jpg",
+    "source": "https://www.pinterest.com/pin/102949541475964493/"
+  },
+  {
+    "title": "Белый шёпот",
+    "image": "white-whisper.jpg",
+    "source": "https://www.pinterest.com/pin/331225747571394791/"
+  },
+  {
+    "title": "Красный бархат",
+    "image": "red-velvet.jpg",
+    "source": "https://www.pinterest.com/pin/741827369910922499/"
+  },
+  {
+    "title": "Весенний свет",
+    "image": "spring-light.jpg",
+    "source": "https://www.pinterest.com/pin/587579082673142010/"
+  }
+]
