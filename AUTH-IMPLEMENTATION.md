@@ -65,8 +65,8 @@
 
 ```env
 # Google OAuth
-GOOGLE_CLIENT_ID=299179772191-vd7v65vgn442tb8lvn38cpddo8ndqgbe.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=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
+GOOGLE_CLIENT_ID=<YOUR_GOOGLE_CLIENT_ID>
+GOOGLE_CLIENT_SECRET=<YOUR_GOOGLE_CLIENT_SECRET>
 
 # Backend URL (для OAuth callbacks)
 BACKEND_URL=http://localhost:3003
@@ -350,3 +350,4 @@ curl -X POST http://localhost:3003/api/auth/reset-password \
 **Автор:** Claude Code  
 **Дата:** 23 апреля 2026  
 **Версия:** 2.4.0
+
