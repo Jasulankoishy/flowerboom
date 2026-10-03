@@ -1,23 +1,32 @@
+import { motion } from "motion/react";
 import { ShoppingBag, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useCartStore, useThemeStore } from "../stores";
 import type { Product } from "../types";
 import { getProductPath } from "../utils/productLinks";
 import { canOrderProduct, getAvailabilityClass, getAvailabilityLabel } from "../constants/products";
+import { useMotionPreferences } from "../hooks/useMotionPreferences";
 
 interface ProductCardProps {
   product: Product;
+  delay?: number;
   onQuickOrder: (product: Product) => void;
   onShowReviews: () => void;
 }
 
-export default function ProductCard({ product, onQuickOrder, onShowReviews }: ProductCardProps) {
+export default function ProductCard({ product, delay = 0, onQuickOrder, onShowReviews }: ProductCardProps) {
   const { isDark } = useThemeStore();
   const addItem = useCartStore((state) => state.addItem);
   const canOrder = canOrderProduct(product);
+  const { isDesktop, reducedMotion } = useMotionPreferences();
 
   return (
-    <div
+    <motion.div
+      initial={reducedMotion ? false : { opacity: 0, y: isDesktop ? 28 : 6 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.08 }}
+      transition={{ duration: reducedMotion ? 0 : isDesktop ? 0.6 : 0.35, delay: isDesktop && !reducedMotion ? delay : 0, ease: [0.22, 1, 0.36, 1] }}
+      whileHover={isDesktop && !reducedMotion ? { y: -6 } : undefined}
       className={`card flex flex-col items-center rounded-lg p-4 transition-colors group sm:p-6 ${
         isDark
           ? 'bg-gray-800 border-2 border-gray-700/50 hover:border-pink-500/30'
@@ -32,12 +41,14 @@ export default function ProductCard({ product, onQuickOrder, onShowReviews }: Pr
       <div
         className="relative w-full aspect-[4/5] bg-slate-700 rounded-md overflow-hidden border border-slate-600"
       >
-        <img
+        <motion.img
           src={product.image}
           alt={product.title}
           className="w-full h-full object-cover cursor-pointer"
           referrerPolicy="no-referrer"
           loading="lazy"
+          whileHover={isDesktop && !reducedMotion ? { scale: 1.04 } : undefined}
+          transition={{ duration: reducedMotion ? 0 : 0.5, ease: [0.22, 1, 0.36, 1] }}
           onClick={onShowReviews}
         />
       </div>
@@ -79,6 +90,6 @@ export default function ProductCard({ product, onQuickOrder, onShowReviews }: Pr
           </button>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

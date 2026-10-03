@@ -1,11 +1,18 @@
 import { ArrowDown, Sparkles, Truck } from "lucide-react";
+import { motion } from "motion/react";
 import { useThemeStore } from "../stores";
+import { useMotionPreferences } from "../hooks/useMotionPreferences";
 
 export default function HeroSection() {
   const { isDark } = useThemeStore();
+  const { isDesktop, reducedMotion } = useMotionPreferences();
 
   return (
-    <div className="relative mb-14 overflow-hidden rounded-3xl border border-sky/20 bg-[radial-gradient(circle_at_20%_10%,rgba(212,175,55,0.18),transparent_34%),linear-gradient(135deg,#080808_0%,#101010_52%,#181204_100%)] px-4 py-8 sm:px-6 md:mb-24 md:px-10 md:py-14">
+    <motion.div
+      initial={reducedMotion ? false : { opacity: 0, y: isDesktop ? 20 : 4 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: reducedMotion ? 0 : 0.6 }}
+      className="relative mb-14 overflow-hidden rounded-3xl border border-sky/20 bg-[radial-gradient(circle_at_20%_10%,rgba(212,175,55,0.18),transparent_34%),linear-gradient(135deg,#080808_0%,#101010_52%,#181204_100%)] px-4 py-8 sm:px-6 md:mb-24 md:px-10 md:py-14">
       <div className="absolute right-0 top-0 h-full w-1/2 opacity-25 [background:repeating-linear-gradient(135deg,transparent_0_18px,rgba(212,175,55,.2)_18px_19px)]" />
       <div className="relative grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
       <div className="max-w-3xl">
@@ -46,6 +53,6 @@ export default function HeroSection() {
         </div>
       </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
