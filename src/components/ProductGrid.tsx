@@ -137,11 +137,10 @@ export default function ProductGrid({ onQuickOrder, onShowReviews, selectedOccas
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {visibleProducts.map((product, idx) => (
+          {visibleProducts.map((product) => (
             <ProductCard
               key={product.id}
               product={product}
-              delay={0.1 * (idx + 1)}
               onQuickOrder={onQuickOrder}
               onShowReviews={() => onShowReviews(product)}
             />
